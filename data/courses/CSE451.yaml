@@ -1,0 +1,18 @@
+id: CSE 451
+title: Introduction to Operating Systems
+credits: "4"
+prereq:
+  all:
+    - course: CSE 332
+    - course: CSE 333
+    - course: CSE 351
+prereqText: "Prerequisite: CSE 332; CSE 333; and CSE 351."
+audience: majors
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

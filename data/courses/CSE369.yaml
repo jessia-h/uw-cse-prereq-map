@@ -1,0 +1,15 @@
+id: CSE 369
+title: Introduction to Digital Design
+credits: "3"
+prereq:
+  course: CSE 311
+prereqText: "Prerequisite: CSE 311."
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

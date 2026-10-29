@@ -1,0 +1,22 @@
+id: CSE 371
+title: Design of Digital Circuits and Systems
+credits: "5"
+prereq:
+  all:
+    - any:
+        - course: E E 205
+        - course: E E 215
+    - any:
+        - course: E E 271
+        - course: CSE 369
+prereqText: "Prerequisite: either E E 205 or E E 215; either E E 271 or CSE 369. Offered: jointly with E E 371."
+jointWith: [E E 371]
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

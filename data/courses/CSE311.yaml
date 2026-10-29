@@ -1,0 +1,21 @@
+id: CSE 311
+title: Foundations of Computing I
+credits: "4"
+prereq:
+  all:
+    - any:
+        - { course: CSE 123, minGrade: 2.0 }
+        - { course: CSE 143, minGrade: 2.0 }
+    - any:
+        - { course: MATH 126, minGrade: 2.0 }
+        - { course: MATH 135, minGrade: 2.0 }
+prereqText: "Prerequisite: a minimum grade of 2.0 in either CSE 123 or CSE 143; and a minimum grade of 2.0 in MATH 126 or MATH 135."
+audience: majors
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

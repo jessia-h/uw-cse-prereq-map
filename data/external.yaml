@@ -1,0 +1,17 @@
+# Stubs for courses referenced by data/courses/ that are not active CSE
+# courses: retired CSE courses and courses from other departments.
+# Minimal on purpose (id, status, url); add titles only from the catalog.
+
+- { id: CSE 142, status: retired, url: "https://www.washington.edu/students/crscat/cse.html" }
+- { id: CSE 163, status: active, url: "https://www.washington.edu/students/crscat/cse.html" }
+- { id: CSE 303, status: retired, url: "https://www.washington.edu/students/crscat/cse.html" }
+- { id: CSE 326, status: retired, url: "https://www.washington.edu/students/crscat/cse.html" }
+- { id: MATH 126, status: active, url: "https://www.washington.edu/students/crscat/math.html" }
+- { id: MATH 135, status: active, url: "https://www.washington.edu/students/crscat/math.html" }
+- { id: MATH 136, status: active, url: "https://www.washington.edu/students/crscat/math.html" }
+- { id: MATH 208, status: active, url: "https://www.washington.edu/students/crscat/math.html" }
+- { id: STAT 390, status: active, url: "https://www.washington.edu/students/crscat/stat.html" }
+- { id: STAT 391, status: active, url: "https://www.washington.edu/students/crscat/stat.html" }
+- { id: E E 205, status: active, url: "https://www.washington.edu/students/crscat/ee.html" }
+- { id: E E 215, status: active, url: "https://www.washington.edu/students/crscat/ee.html" }
+- { id: E E 271, status: active, url: "https://www.washington.edu/students/crscat/ee.html" }

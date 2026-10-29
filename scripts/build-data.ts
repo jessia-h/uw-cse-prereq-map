@@ -37,7 +37,7 @@ const courseFiles = names
 
 let externalFile: SourceFile | null = null
 if (existsSync(externalPath)) externalFile = load(externalPath)
-else warnings.push('data/external.yaml: not found; treating as empty')
+else errors.push('data/external.yaml: not found; it must list the non-CSE and retired course stubs')
 
 const result = validate(courseFiles, externalFile)
 errors.push(...result.errors)

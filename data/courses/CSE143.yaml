@@ -1,0 +1,15 @@
+id: CSE 143
+title: Computer Programming II
+credits: "5"
+prereq:
+  course: CSE 142
+prereqText: "Prerequisite: CSE 142."
+audience: open
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

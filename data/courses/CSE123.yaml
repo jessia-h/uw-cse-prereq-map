@@ -1,0 +1,18 @@
+id: CSE 123
+title: Introduction to Computer Programming III
+credits: "4"
+prereq: null
+prereqText: "Recommended: CSE 122 or completion of Paul G. Allen School's Guided Self-Placement."
+recommended:
+  any:
+    - course: CSE 122
+    - other: Guided Self-Placement
+audience: open
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

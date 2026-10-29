@@ -1,0 +1,24 @@
+id: CSE 469
+title: Computer Architecture I
+credits: "5"
+prereq:
+  all:
+    - any:
+        - course: E E 271
+        - course: CSE 369
+    - any:
+        - course: CSE 123
+        - course: CSE 143
+prereqText: "Prerequisite: either E E 271 or CSE 369; and either CSE 123 or CSE 143. Offered: jointly with E E 469."
+jointWith: [E E 469]
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog
+conflicts:
+  - "Allen School CE Systems Electives list shows 'CSE 369, CSE 143' (retrieved 2026-10-22)."

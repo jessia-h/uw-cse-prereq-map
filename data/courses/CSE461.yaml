@@ -1,0 +1,23 @@
+id: CSE 461
+title: Introduction to Computer-Communication Networks
+credits: "4"
+prereq:
+  all:
+    - any:
+        - course: CSE 326
+        - course: CSE 332
+    - any:
+        - course: CSE 303
+        - course: CSE 333
+prereqText: "Prerequisite: either CSE 326 or CSE 332; either CSE 303 or CSE 333."
+audience: majors
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog
+conflicts:
+  - "Allen School CE Systems Electives list shows 'CSE 332, CSE 333' (retrieved 2026-10-22)."

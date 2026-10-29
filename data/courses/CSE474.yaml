@@ -1,0 +1,20 @@
+id: CSE 474
+title: Introduction to Embedded Systems
+credits: "4"
+prereq:
+  any:
+    - course: CSE 123
+    - course: CSE 143
+prereqText: "Prerequisite: CSE 123 or CSE 143 Offered: jointly with E E 474; AWSpS."
+jointWith: [E E 474]
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog
+conflicts:
+  - "Allen School CE Systems Electives list shows 'CSE 333, CSE 352' (retrieved 2026-10-22)."

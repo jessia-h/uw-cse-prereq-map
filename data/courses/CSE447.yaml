@@ -1,0 +1,21 @@
+id: CSE 447
+title: Natural Language Processing
+credits: "4"
+prereq:
+  all:
+    - course: CSE 312
+    - course: CSE 332
+prereqText: "Prerequisite: CSE 312 and CSE 332; recommended: MATH 208; and CSE 446 is recommended before or concurrently."
+recommended:
+  all:
+    - course: MATH 208
+    - { course: CSE 446, timing: concurrent-ok }
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

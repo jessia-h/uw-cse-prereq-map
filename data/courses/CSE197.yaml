@@ -1,0 +1,20 @@
+id: CSE 197
+title: Problem Solving for Computer Science and Engineering
+credits: "1/2, max. 8"
+prereq: null
+prereqText: "Must be taken with CSE 121, CSE 122, or CSE 123."
+coreq:
+  any:
+    - course: CSE 121
+    - course: CSE 122
+    - course: CSE 123
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog
+notes: "Audience: Allen Scholars / STARS."
