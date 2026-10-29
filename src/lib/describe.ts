@@ -62,3 +62,41 @@ export function courseLabel(course: AnyCourse, unlocks: number): string {
   if (unlocks > 0) parts.push(`Unlocks ${unlocks} ${unlocks === 1 ? 'course' : 'courses'}.`)
   return parts.join(' ')
 }
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+/**
+ * A requirement as list items for the detail panel: a top-level AND becomes
+ * one item per part ("One of E E 271 or CSE 369", "One of CSE 123 or CSE 143");
+ * anything else is a single item. Minimum grades stay inline.
+ */
+export function reqItems(req: Req): string[] {
+  return ('all' in req ? req.all : [req]).map((r) => capitalize(describeReq(r)))
+}
+
+export const AUDIENCE_LABEL: Record<Course['audience'], string> = {
+  majors: 'Majors',
+  open: 'Open to all',
+  nonmajor: 'Non-majors',
+  unknown: 'Not yet confirmed',
+}
+
+/**
+ * Link to the course in the UW Course Catalog. CSE courses link to the
+ * department page with the course anchor (cse.html#cse451), like the stubs do.
+ */
+export function catalogUrl(course: AnyCourse): string {
+  if (isExternal(course)) return course.url
+  const url = course.sources[0].url
+  return url.includes('#') ? url : `${url}#${course.id.toLowerCase().replaceAll(' ', '')}`
+}
+
+/** "2026-10-22" → "October 22, 2026" (no time zone shift). */
+export function formatDate(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+}

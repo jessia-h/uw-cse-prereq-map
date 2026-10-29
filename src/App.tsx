@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
+import { DetailPanel } from './components/DetailPanel.tsx'
 import { FocusView } from './components/FocusView.tsx'
 import { FullMapView } from './components/FullMapView.tsx'
 import { Legend } from './components/Legend.tsx'
@@ -55,6 +56,42 @@ function App() {
   const select = useCallback((id: string) => update({ course: toParam(id) }), [update])
 
   const focus = param ? lookup(param) : undefined
+  const focusId = focus?.id
+
+  // When the user selects a course, move focus to the panel heading. Not on
+  // first page load: the user hasn't acted yet, and it would scroll the page.
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const lastFocusId = useRef(focusId)
+  useEffect(() => {
+    if (focusId && focusId !== lastFocusId.current) headingRef.current?.focus()
+    lastFocusId.current = focusId
+  }, [focusId])
+
+  /** Close the panel: clear the selection and return focus to the course's node. */
+  const closePanel = useCallback(() => {
+    update({ course: null })
+    // Wait a frame for React to re-render. In the Focus view the node is gone
+    // (back to the start screen), so focus goes to search instead.
+    requestAnimationFrame(() => {
+      const node = focusId && document.querySelector<HTMLElement>(`button.course-node[data-course-id="${focusId}"]`)
+      if (node) node.focus({ preventScroll: true }) // don't let the browser scroll the map
+      else document.getElementById('course-search')?.focus()
+    })
+  }, [update, focusId])
+
+  // Escape closes the panel, except in the search box, where it clears the text.
+  useEffect(() => {
+    if (!focusId) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !(e.target instanceof HTMLInputElement)) closePanel()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [focusId, closePanel])
+
+  const panel = focus && (
+    <DetailPanel course={focus} onClose={closePanel} onSelect={select} headingRef={headingRef} />
+  )
 
   useEffect(() => {
     const base = 'UW CSE Prerequisite Map'
@@ -79,11 +116,6 @@ function App() {
             <input type="checkbox" checked={showRecommended} onChange={(e) => setShowRecommended(e.target.checked)} />{' '}
             Show recommended courses
           </label>
-          {view === 'map' && focus && (
-            <button type="button" className="link-button" onClick={() => update({ course: null })}>
-              Clear selection
-            </button>
-          )}
         </div>
 
         {param && !focus && (
@@ -92,22 +124,22 @@ function App() {
           </p>
         )}
 
-        {focus ? (
-          <h2 className="selection-heading">
-            {focus.id}
-            {focus.title && `: ${focus.title}`}
-          </h2>
-        ) : view === 'map' ? (
+        {!focus && view === 'map' && (
           <div className="map-intro">
             <p>Select any course to highlight what it requires (left) and what it leads to (right).</p>
             <Suggestions onSelect={select} compact />
           </div>
-        ) : null}
+        )}
 
         {view === 'map' && (
           <>
             <Legend showRecommended={showRecommended} highlighting />
-            <FullMapView selectedId={focus?.id ?? null} showRecommended={showRecommended} onSelect={select} />
+            <FullMapView
+              selectedId={focus?.id ?? null}
+              showRecommended={showRecommended}
+              onSelect={select}
+              panel={panel}
+            />
           </>
         )}
 
@@ -115,7 +147,10 @@ function App() {
           (focus ? (
             <>
               <Legend showRecommended={showRecommended} />
-              <FocusView focusId={focus.id} showRecommended={showRecommended} onSelect={select} />
+              <div className="focus-with-panel">
+                <FocusView focusId={focus.id} showRecommended={showRecommended} onSelect={select} />
+                {panel}
+              </div>
             </>
           ) : (
             <>

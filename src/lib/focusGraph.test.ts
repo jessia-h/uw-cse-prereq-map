@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { courseData } from '../data/courses.ts'
-import { coreqText, courseLabel, describeReq } from './describe.ts'
-import { buildFocusGraph, buildFullGraph, type FocusGraph } from './focusGraph.ts'
+import { AUDIENCE_LABEL, catalogUrl, coreqText, courseLabel, describeReq, formatDate, reqItems } from './describe.ts'
+import { buildFocusGraph, buildFullGraph, introLinkIds, type FocusGraph } from './focusGraph.ts'
 import { layoutFocusGraph, nodeSize } from './layout.ts'
 import { buildGraph } from './prereq.ts'
 import { searchCourses } from './search.ts'
@@ -278,5 +278,44 @@ describe('searchCourses', () => {
   it('empty query → nothing', () => {
     expect(ids('')).toEqual([])
     expect(ids('   ')).toEqual([])
+  })
+})
+
+describe('intro sequence links', () => {
+  it('121 → 122 → 123 through their "one of" junctions, without Guided Self-Placement boxes', () => {
+    const ids = [...introLinkIds(buildFullGraph(courseData))].sort()
+    expect(ids).toEqual([
+      'CSE 121->CSE 122/recommended:recommended',
+      'CSE 122->CSE 123/recommended:recommended',
+      'CSE 122/recommended',
+      'CSE 122/recommended->CSE 122:recommended',
+      'CSE 123/recommended',
+      'CSE 123/recommended->CSE 123:recommended',
+    ])
+  })
+})
+
+describe('detail panel text', () => {
+  it('top-level AND becomes list items, grades inline (CSE 311, CSE 469)', () => {
+    const c = (id: string) => courseData.courses.find((x) => x.id === id)!
+    expect(reqItems(c('CSE 311').prereq!)).toEqual([
+      'One of CSE 123 (minimum grade 2.0) or CSE 143 (minimum grade 2.0)',
+      'One of MATH 126 (minimum grade 2.0) or MATH 135 (minimum grade 2.0)',
+    ])
+    expect(reqItems(c('CSE 469').prereq!)).toEqual(['One of E E 271 or CSE 369', 'One of CSE 123 or CSE 143'])
+    expect(reqItems(c('CSE 312').prereq!)).toEqual(['CSE 311'])
+  })
+
+  it('"unknown" audience reads "Not yet confirmed"', () => {
+    expect(AUDIENCE_LABEL.unknown).toBe('Not yet confirmed')
+  })
+
+  it('catalog links use the course anchor', () => {
+    expect(catalogUrl(course('CSE 451'))).toBe('https://www.washington.edu/students/crscat/cse.html#cse451')
+    expect(catalogUrl(course('E E 271'))).toBe('https://www.washington.edu/students/crscat/ee.html#ee271')
+  })
+
+  it('dates are formatted without a time zone shift', () => {
+    expect(formatDate('2026-10-22')).toBe('October 22, 2026')
   })
 })

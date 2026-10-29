@@ -1,7 +1,10 @@
-// Frames the full map: on first render, centers on the selected course (or
-// fits the whole map if none); afterwards, gently pans to each new selection,
-// zooming in if far out. Instant if the user prefers reduced motion.
-// Must be rendered inside <ReactFlow>.
+// Frames the full map. On first render: centers on the selected course, or
+// frames the `start` courses at a readable zoom. Afterwards: gently pans to
+// each new selection, zooming in if far out. Instant if the user prefers
+// reduced motion. Must be rendered inside <ReactFlow>.
+//
+// `coveredRight` is how many screen pixels on the right are covered (by the
+// detail panel); the course is centered in the area left of it.
 //
 // Note: this doesn't use React Flow's useNodesInitialized(). That flag resets
 // whenever new node objects arrive (every selection, for highlighting), and
@@ -12,8 +15,13 @@ import { useEffect, useRef } from 'react'
 
 const MIN_ZOOM_ON_SELECT = 0.8
 
-export function CenterOn(props: { ready: boolean; target: { id: string; x: number; y: number } | null }) {
-  const { ready, target } = props
+export function CenterOn(props: {
+  ready: boolean
+  target: { id: string; x: number; y: number } | null
+  start: string[]
+  coveredRight: number
+}) {
+  const { ready, target, start, coveredRight } = props
   const flow = useReactFlow()
   const first = useRef(true)
   const { id, x, y } = target ?? {}
@@ -21,16 +29,17 @@ export function CenterOn(props: { ready: boolean; target: { id: string; x: numbe
   useEffect(() => {
     if (!ready) return
     const instant = first.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const isFirst = first.current
     first.current = false
     if (id === undefined || x === undefined || y === undefined) {
-      if (instant) flow.fitView({ padding: 0.05 })
+      if (isFirst) flow.fitView({ nodes: start.map((s) => ({ id: s })), padding: 0.3, minZoom: 0.9, maxZoom: 1 })
       return
     }
-    flow.setCenter(x, y, {
-      zoom: Math.max(flow.getZoom(), MIN_ZOOM_ON_SELECT),
-      duration: instant ? 0 : 400,
-    })
-  }, [ready, flow, id, x, y])
+    const zoom = Math.max(flow.getZoom(), MIN_ZOOM_ON_SELECT)
+    // Shift the view's center right by half the covered width, so the course
+    // sits in the middle of the visible part.
+    flow.setCenter(x + coveredRight / 2 / zoom, y, { zoom, duration: instant ? 0 : 400 })
+  }, [ready, flow, id, x, y, start, coveredRight])
 
   return null
 }

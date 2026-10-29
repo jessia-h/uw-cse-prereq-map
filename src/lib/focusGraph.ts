@@ -184,3 +184,30 @@ export function buildFocusGraph(
 
   return b.result()
 }
+
+/** The intro programming sequence, shown together on the full map by default. */
+export const INTRO_SEQUENCE = ['CSE 121', 'CSE 122', 'CSE 123']
+
+/**
+ * Ids of the recommendation links between intro courses (121 → 122 → 123):
+ * the course-to-course edges, the "one of" junctions they feed, and the
+ * junction-to-course edges. Guided Self-Placement boxes are left out; the
+ * map's intro note names it instead.
+ */
+export function introLinkIds(full: FocusGraph): Set<string> {
+  const intro = new Set(INTRO_SEQUENCE)
+  // Recommendation junctions of intro courses, e.g. "CSE 122/recommended".
+  const junctions = new Set(
+    full.nodes
+      .filter((n) => n.kind === 'junction' && n.recommended && intro.has(n.id.split('/')[0]))
+      .map((n) => n.id),
+  )
+  const ids = new Set<string>(junctions)
+  for (const e of full.edges) {
+    if (e.kind !== 'recommended') continue
+    const fromIntro = intro.has(e.source) && (intro.has(e.target) || junctions.has(e.target))
+    const fromJunction = junctions.has(e.source) && intro.has(e.target)
+    if (fromIntro || fromJunction) ids.add(e.id)
+  }
+  return ids
+}

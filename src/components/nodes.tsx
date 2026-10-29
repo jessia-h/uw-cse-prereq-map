@@ -21,6 +21,7 @@ export type OtherNodeData = { text: string; recommended: boolean; faded: boolean
 export type CourseFlowNode = Node<CourseNodeData, 'course'>
 export type JunctionFlowNode = Node<JunctionNodeData, 'junction'>
 export type OtherFlowNode = Node<OtherNodeData, 'other'>
+export type NoteFlowNode = Node<{ text: string; width: number }, 'note'>
 
 // Edges attach here: in on the left, out on the right. Hidden; not draggable.
 function Handles() {
@@ -48,6 +49,7 @@ export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
           data.faded && 'course-node--faded',
         )}
         aria-label={data.label}
+        data-course-id={data.courseId} // lets the detail panel return focus here
         aria-current={data.selected ? 'true' : undefined}
         onClick={() => data.onSelect(data.courseId)}
       >
@@ -85,5 +87,14 @@ export function OtherNode({ data }: NodeProps<OtherFlowNode>) {
         {data.text}
       </div>
     </>
+  )
+}
+
+/** A text annotation on the map (not a course and not part of the layout). */
+export function NoteNode({ data }: NodeProps<NoteFlowNode>) {
+  return (
+    <p className="map-note" style={{ width: data.width }}>
+      {data.text}
+    </p>
   )
 }

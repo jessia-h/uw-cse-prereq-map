@@ -185,10 +185,6 @@ main,
   cursor: pointer;
 }
 
-.selection-heading {
-  margin: 4px 0 8px;
-}
-
 .map-intro {
   display: flex;
   flex-wrap: wrap;
@@ -419,4 +415,185 @@ main,
 
 .course-node--selected .course-node__tag {
   color: var(--color-text-on-purple);
+}
+
+/* Hidden visually, still read by screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Intro sequence note on the full map */
+.map-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Detail panel. Width matches PANEL_WIDTH in FullMapView.tsx. */
+.detail-panel {
+  padding: 12px 16px;
+  overflow-y: auto;
+  background: var(--color-background);
+  border: 2px solid var(--color-uw-purple);
+  border-radius: 8px;
+}
+
+.detail-panel__top {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-panel h2 {
+  margin: 0;
+  font-size: 1.375rem;
+  color: var(--color-uw-purple);
+}
+
+.detail-panel__title {
+  display: block;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.detail-panel h3 {
+  margin: 16px 0 4px;
+  font-size: 1rem;
+}
+
+.detail-panel p,
+.detail-panel ul {
+  margin: 4px 0;
+}
+
+.detail-panel ul {
+  padding-left: 20px;
+}
+
+.detail-panel__close {
+  flex: none;
+  padding: 4px 12px;
+  font: inherit;
+  color: var(--color-uw-purple);
+  background: var(--color-background);
+  border: 2px solid var(--color-uw-purple);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.detail-panel__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.detail-panel__notes,
+.detail-panel__hint {
+  color: var(--color-text-muted);
+}
+
+.badge {
+  padding: 1px 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-badge-text);
+  background: var(--color-badge-fill);
+  border-radius: 999px;
+}
+
+.detail-panel__wording {
+  margin-top: 16px;
+}
+
+.detail-panel__wording summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.detail-panel__wording blockquote {
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  background: var(--color-surface);
+  border-left: 4px solid var(--color-uw-purple);
+}
+
+.detail-panel__unlocks {
+  list-style: none;
+  padding-left: 0;
+}
+
+.detail-panel__unlocks li {
+  margin: 2px 0;
+}
+
+.note {
+  margin-top: 16px;
+  padding: 8px 12px;
+  color: var(--color-warning-text);
+  background: var(--color-warning-fill);
+  border: 1px solid var(--color-warning-border);
+  border-radius: 6px;
+}
+
+.note h3 {
+  margin-top: 0;
+}
+
+.detail-panel__disclaimer {
+  margin-top: 16px !important;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* Full map: the panel overlays the map's right side (centering accounts for it). */
+.map-with-panel {
+  position: relative;
+}
+
+.map-with-panel .detail-panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 5;
+  width: 360px;
+}
+
+/* Focus view: the panel sits beside the graph, so it never covers it. */
+.focus-with-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 12px;
+}
+
+.focus-with-panel .detail-panel {
+  height: 70vh;
+  min-height: 420px;
+}
+
+/* Narrow screens: the panel is a section below the graph. Matches WIDE in useMediaQuery.ts. */
+@media (max-width: 639.98px) {
+  .map-with-panel .detail-panel {
+    position: static;
+    width: auto;
+    margin-top: 12px;
+  }
+
+  .focus-with-panel {
+    display: block;
+  }
+
+  .focus-with-panel .detail-panel {
+    height: auto;
+    min-height: 0;
+    margin-top: 12px;
+  }
 }

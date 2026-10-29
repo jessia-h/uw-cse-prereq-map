@@ -28,10 +28,13 @@ export interface FlowOptions {
   highlight?: Set<string> | null
   /** Hide dotted recommendation edges, and junctions/boxes that only serve them. */
   hideRecommended?: boolean
+  /** Recommendation ids to show even when the rest are hidden (the intro sequence). */
+  alwaysShow?: Set<string>
 }
 
 export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { nodes: Node[]; edges: Edge[] } {
   const faded = (id: string) => !!opts.highlight && !opts.highlight.has(id)
+  const hide = (id: string) => !!opts.hideRecommended && !opts.alwaysShow?.has(id)
 
   const nodes: Node[] = model.nodes.map((n) => {
     const base = {
@@ -57,7 +60,7 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
         },
       }
     }
-    const hidden = !!opts.hideRecommended && n.recommended
+    const hidden = n.recommended && hide(n.id)
     if (n.kind === 'junction') {
       return { ...base, hidden, type: 'junction', data: { label: n.label, recommended: n.recommended, faded: faded(n.id) } }
     }
@@ -75,7 +78,7 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
       source: e.source,
       target: e.target,
       type: 'routed',
-      hidden: !!opts.hideRecommended && e.kind === 'recommended',
+      hidden: e.kind === 'recommended' && hide(e.id),
       // Highlighted lines draw on top of faded ones.
       zIndex: isFaded ? 0 : 1,
       data: {
@@ -101,4 +104,27 @@ export function nodeCenter(model: FocusGraph, layout: Layout, id: string) {
   if (!node || !pos) return null
   const { width, height } = nodeSize(node)
   return { x: pos.x + width / 2, y: pos.y + height / 2 }
+}
+
+/**
+ * A note above the given courses, e.g. the intro sequence label. Placed from
+ * the layout (not by elk), spanning the courses' combined width.
+ */
+export function noteAbove(model: FocusGraph, layout: Layout, ids: string[], text: string): Node | null {
+  const boxes = ids.flatMap((id) => {
+    const node = model.nodes.find((n) => n.id === id)
+    const pos = layout.positions.get(id)
+    return node && pos ? [{ ...pos, ...nodeSize(node) }] : []
+  })
+  if (boxes.length === 0) return null
+  const left = Math.min(...boxes.map((b) => b.x))
+  const right = Math.max(...boxes.map((b) => b.x + b.width))
+  const top = Math.min(...boxes.map((b) => b.y))
+  return {
+    id: `note:${ids.join(',')}`,
+    type: 'note',
+    position: { x: left, y: top - 52 },
+    data: { text, width: right - left },
+    selectable: false,
+  }
 }
