@@ -32,6 +32,12 @@ export const colors = {
   edgeOneOf: '#4b2e83', // 10.41:1, dashed
   edgeRecommended: '#6b6b6b', // 5.33:1, dotted
 
+  // Full map: courses outside the selection. Fill and lines fade; text keeps
+  // `text` (17.40:1 on white), and faded lines/borders stay >= 3:1.
+  nodeFillFaded: '#ffffff',
+  nodeBorderFaded: '#8c8c8c', // 3.36:1
+  edgeFaded: '#8c8c8c', // 3.36:1
+
   // Focus ring: drawn with an offset, so it sits on the page background
   focusRing: '#0050c8', // 7.04:1
 

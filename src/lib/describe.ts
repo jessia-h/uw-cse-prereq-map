@@ -30,6 +30,18 @@ export function describeReq(req: Req): string {
   return join(req.all.map(describeReq), 'and', req.all.some(isGroup))
 }
 
+/**
+ * A co-requisite as a short line, e.g. "Take with one of CSE 121, CSE 122, CSE 123".
+ * Shown as text on the node; co-requisites get no arrows.
+ */
+export function coreqText(req: Req): string {
+  if ('course' in req) return `Take with ${describeReq(req)}`
+  if ('any' in req && req.any.every((r) => 'course' in r && r.minGrade === undefined)) {
+    return `Take with one of ${req.any.map((r) => describeReq(r)).join(', ')}`
+  }
+  return `Take with ${describeReq(req)}`
+}
+
 export type AnyCourse = Course | ExternalCourse
 
 export const isExternal = (c: AnyCourse): c is ExternalCourse => !('prereq' in c)
@@ -38,6 +50,7 @@ export const isExternal = (c: AnyCourse): c is ExternalCourse => !('prereq' in c
  * Accessible name for a course node, e.g.
  * "CSE 451, Introduction to Operating Systems. Requires CSE 332, CSE 333, and
  * CSE 351. Unlocks 2 courses."
+ * Minimum grades are included ("CSE 123 (minimum grade 2.0)").
  */
 export function courseLabel(course: AnyCourse, unlocks: number): string {
   const parts = [course.title ? `${course.id}, ${course.title}.` : `${course.id}.`]
@@ -45,6 +58,7 @@ export function courseLabel(course: AnyCourse, unlocks: number): string {
   if (isExternal(course)) parts.push('Not part of this map.')
   else if (course.prereq) parts.push(`Requires ${describeReq(course.prereq)}.`)
   else parts.push('No prerequisites.')
+  if (!isExternal(course) && course.coreq) parts.push(`${coreqText(course.coreq)}.`)
   if (unlocks > 0) parts.push(`Unlocks ${unlocks} ${unlocks === 1 ? 'course' : 'courses'}.`)
   return parts.join(' ')
 }

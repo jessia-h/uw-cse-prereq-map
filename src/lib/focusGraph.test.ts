@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { courseData } from '../data/courses.ts'
-import { courseLabel, describeReq } from './describe.ts'
-import { buildFocusGraph, type FocusGraph } from './focusGraph.ts'
-import { layoutFocusGraph } from './layout.ts'
+import { coreqText, courseLabel, describeReq } from './describe.ts'
+import { buildFocusGraph, buildFullGraph, type FocusGraph } from './focusGraph.ts'
+import { layoutFocusGraph, nodeSize } from './layout.ts'
 import { buildGraph } from './prereq.ts'
 import { searchCourses } from './search.ts'
 
@@ -114,7 +114,71 @@ describe('buildFocusGraph', () => {
   })
 })
 
+describe('buildFullGraph', () => {
+  const full = buildFullGraph(courseData)
+  const ids = new Set([...full.nodes.map((n) => n.id), ...full.edges.map((e) => e.id)])
+
+  it('has every course and outside course', () => {
+    expect(courseIds(full)).toEqual(all.map((c) => c.id).sort())
+    expect(courseIds(full)).toHaveLength(35)
+  })
+
+  it('every focus graph is a subset of the full map, so highlighting matches the Focus view', () => {
+    for (const c of all) {
+      for (const showRecommended of [false, true]) {
+        const g = focus(c.id, showRecommended)
+        for (const x of [...g.nodes, ...g.edges]) expect(ids, `${c.id}: ${x.id}`).toContain(x.id)
+      }
+    }
+  })
+
+  it('co-requisites are never drawn as edges (CSE 197)', () => {
+    expect(full.edges.filter((e) => e.target === 'CSE 197' || e.source === 'CSE 197')).toEqual([])
+  })
+})
+
+describe('minimum grades on edges', () => {
+  const grades = (g: FocusGraph, target: string) =>
+    g.edges
+      .filter((e) => e.minGrade !== undefined && (e.target === target || e.target.startsWith(`${target}/`)))
+      .map((e) => [e.source, e.minGrade])
+      .sort()
+
+  it('CSE 311: 2.0 on all four options', () => {
+    expect(grades(focus('CSE 311'), 'CSE 311')).toEqual([
+      ['CSE 123', 2],
+      ['CSE 143', 2],
+      ['MATH 126', 2],
+      ['MATH 135', 2],
+    ])
+  })
+
+  it('CSE 331: 2.0; CSE 414: 2.5 — in both views', () => {
+    const full = buildFullGraph(courseData)
+    expect(grades(full, 'CSE 331')).toEqual([['CSE 123', 2], ['CSE 143', 2]])
+    expect(grades(full, 'CSE 414')).toEqual([['CSE 123', 2.5], ['CSE 143', 2.5], ['CSE 163', 2.5]])
+    expect(grades(focus('CSE 414'), 'CSE 414')).toEqual(grades(full, 'CSE 414'))
+  })
+
+  it('a descendant edge keeps its grade (CSE 123 → CSE 331 shows 2.0)', () => {
+    expect(grades(focus('CSE 123'), 'CSE 331')).toEqual([['CSE 123', 2]])
+  })
+
+  it('elk places a label for each graded edge', async () => {
+    const g = focus('CSE 311')
+    const { labels } = await layoutFocusGraph(g)
+    const graded = g.edges.filter((e) => e.minGrade !== undefined)
+    expect(graded).toHaveLength(4)
+    for (const e of graded) expect(labels.has(e.id)).toBe(true)
+  })
+})
+
 describe('layoutFocusGraph', () => {
+  it('CSE 197 gets a taller box for its "Take with" line', () => {
+    const node = buildFullGraph(courseData).nodes.find((n) => n.id === 'CSE 197')!
+    expect(nodeSize(node).height).toBeGreaterThan(64)
+  })
+
   it('ancestors left of the focus course, descendants right (CSE 311)', async () => {
     const g = focus('CSE 311')
     const pos = (await layoutFocusGraph(g)).positions
@@ -158,6 +222,23 @@ describe('describe', () => {
   it('external and retired stubs', () => {
     expect(courseLabel(course('MATH 126'), 1)).toBe('MATH 126. Not part of this map. Unlocks 1 course.')
     expect(courseLabel(course('CSE 142'), 1)).toBe('CSE 142. Retired course. Not part of this map. Unlocks 1 course.')
+  })
+
+  it('minimum grades are in the accessible names (CSE 331, CSE 414)', () => {
+    expect(courseLabel(course('CSE 331'), 0)).toBe(
+      'CSE 331, Software Design and Implementation. Requires one of CSE 123 (minimum grade 2.0) or CSE 143 (minimum grade 2.0).',
+    )
+    expect(courseLabel(course('CSE 414'), 0)).toBe(
+      'CSE 414, Introduction to Database Systems. Requires one of CSE 123 (minimum grade 2.5), CSE 143 (minimum grade 2.5), or CSE 163 (minimum grade 2.5).',
+    )
+  })
+
+  it('co-requisite text and accessible name (CSE 197)', () => {
+    const c197 = courseData.courses.find((c) => c.id === 'CSE 197')!
+    expect(coreqText(c197.coreq!)).toBe('Take with one of CSE 121, CSE 122, CSE 123')
+    expect(courseLabel(c197, 0)).toBe(
+      'CSE 197, Problem Solving for Computer Science and Engineering. No prerequisites. Take with one of CSE 121, CSE 122, CSE 123.',
+    )
   })
 
   it('concurrent-ok and other leaves', () => {

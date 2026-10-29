@@ -1,11 +1,12 @@
 // Draws an edge along the route elk computed (orthogonal, around nodes),
-// with slightly rounded corners. Falls back to React Flow's curve if elk
-// gave no route.
+// with slightly rounded corners, plus an optional minimum-grade label.
+// Falls back to React Flow's curve if elk gave no route.
 
 import { BaseEdge, getBezierPath, type Edge, type EdgeProps } from '@xyflow/react'
 import type { Point } from '../lib/layout.ts'
+import { colors } from '../theme.ts'
 
-export type RoutedFlowEdge = Edge<{ points: Point[] }, 'routed'>
+export type RoutedFlowEdge = Edge<{ points: Point[]; label?: { text: string; x: number; y: number } }, 'routed'>
 
 const RADIUS = 8
 
@@ -29,6 +30,7 @@ function roundedPath(points: Point[]): string {
 
 export function RoutedEdge(props: EdgeProps<RoutedFlowEdge>) {
   const points = props.data?.points ?? []
+  const label = props.data?.label
   const path =
     points.length >= 2
       ? roundedPath(points)
@@ -40,5 +42,19 @@ export function RoutedEdge(props: EdgeProps<RoutedFlowEdge>) {
           targetY: props.targetY,
           targetPosition: props.targetPosition,
         })[0]
-  return <BaseEdge path={path} style={props.style} markerEnd={props.markerEnd} />
+  return (
+    <BaseEdge
+      path={path}
+      style={props.style}
+      markerEnd={props.markerEnd}
+      // Minimum grade, e.g. "≥ 2.0". Text stays full contrast even when the line fades.
+      label={label?.text}
+      labelX={label?.x}
+      labelY={label?.y}
+      labelStyle={{ fill: colors.text, fontSize: 11, fontWeight: 700 }}
+      labelShowBg
+      labelBgStyle={{ fill: colors.background }}
+      labelBgPadding={[3, 1]}
+    />
+  )
 }

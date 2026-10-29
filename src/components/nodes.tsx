@@ -3,19 +3,20 @@
 // are plain text; the course buttons' names already say "one of".
 
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import type { Role } from '../lib/focusGraph.ts'
 
 export type CourseNodeData = {
   courseId: string
   title?: string
-  role: Role
+  selected: boolean
+  faded: boolean
   external: boolean
   retired: boolean
+  coreq?: string // "Take with one of …"; co-requisites are text, not arrows
   label: string // accessible name
   onSelect: (courseId: string) => void
 }
-export type JunctionNodeData = { label: string; recommended: boolean }
-export type OtherNodeData = { text: string; recommended: boolean }
+export type JunctionNodeData = { label: string; recommended: boolean; faded: boolean }
+export type OtherNodeData = { text: string; recommended: boolean; faded: boolean }
 
 export type CourseFlowNode = Node<CourseNodeData, 'course'>
 export type JunctionFlowNode = Node<JunctionNodeData, 'junction'>
@@ -31,24 +32,29 @@ function Handles() {
   )
 }
 
+const cls = (...names: (string | false)[]) => names.filter(Boolean).join(' ')
+
 export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
-  const classes = ['course-node']
-  if (data.role === 'focus') classes.push('course-node--focus')
-  if (data.external || data.retired) classes.push('course-node--external')
   const tag = data.retired ? 'retired' : data.external ? 'outside this map' : null
   return (
     <>
       <Handles />
       <button
         type="button"
-        className={classes.join(' ')}
+        className={cls(
+          'course-node',
+          data.selected && 'course-node--selected',
+          (data.external || data.retired) && 'course-node--external',
+          data.faded && 'course-node--faded',
+        )}
         aria-label={data.label}
-        aria-current={data.role === 'focus' ? 'true' : undefined}
+        aria-current={data.selected ? 'true' : undefined}
         onClick={() => data.onSelect(data.courseId)}
       >
         <span className="course-node__id">{data.courseId}</span>
         {data.title && <span className="course-node__title">{data.title}</span>}
         {tag && <span className="course-node__tag">{tag}</span>}
+        {data.coreq && <span className="course-node__coreq">{data.coreq}</span>}
       </button>
     </>
   )
@@ -58,7 +64,15 @@ export function JunctionNode({ data }: NodeProps<JunctionFlowNode>) {
   return (
     <>
       <Handles />
-      <div className={`junction-node${data.recommended ? ' junction-node--recommended' : ''}`}>{data.label}</div>
+      <div
+        className={cls(
+          'junction-node',
+          data.recommended && 'junction-node--recommended',
+          data.faded && 'junction-node--faded',
+        )}
+      >
+        {data.label}
+      </div>
     </>
   )
 }
@@ -67,7 +81,9 @@ export function OtherNode({ data }: NodeProps<OtherFlowNode>) {
   return (
     <>
       <Handles />
-      <div className={`other-node${data.recommended ? ' other-node--recommended' : ''}`}>{data.text}</div>
+      <div className={cls('other-node', data.recommended && 'other-node--recommended', data.faded && 'other-node--faded')}>
+        {data.text}
+      </div>
     </>
   )
 }
