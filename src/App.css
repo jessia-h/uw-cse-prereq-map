@@ -1,0 +1,290 @@
+/* Colors come only from theme.ts, via the --color-* variables set in main.tsx. */
+
+.site-header,
+main,
+.site-footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-top: 16px;
+  padding-bottom: 8px;
+  border-bottom: 4px solid var(--color-uw-gold); /* decoration only */
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.site-header h1 a {
+  color: var(--color-uw-purple);
+  text-decoration: none;
+}
+
+.site-footer {
+  margin-top: 24px;
+  padding-top: 12px;
+  padding-bottom: 24px;
+  border-top: 1px solid var(--color-node-border-external);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Search */
+.search {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: min(100%, 360px);
+}
+
+.search label {
+  font-weight: 600;
+}
+
+.search input {
+  font: inherit;
+  padding: 6px 10px;
+  border: 2px solid var(--color-node-border-external);
+  border-radius: 6px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.search__results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--color-background);
+  border: 2px solid var(--color-node-border-external);
+  border-radius: 6px;
+}
+
+.search__results button {
+  width: 100%;
+  padding: 6px 8px;
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search__results button:hover {
+  background: var(--color-surface);
+}
+
+.search__empty {
+  padding: 6px 8px;
+  color: var(--color-text-muted);
+}
+
+/* Starting screen */
+.intro {
+  max-width: 60ch;
+}
+
+.notice {
+  padding: 8px 12px;
+  color: var(--color-warning-text);
+  background: var(--color-warning-fill);
+  border: 1px solid var(--color-warning-border);
+  border-radius: 6px;
+}
+
+.suggestions ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestions button {
+  padding: 10px 14px;
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 2px solid var(--color-node-border-cse);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.suggestions button strong {
+  display: block;
+  color: var(--color-uw-purple);
+}
+
+/* Focus view */
+.toolbar {
+  margin-bottom: 8px;
+}
+
+.legend h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend__node {
+  display: inline-block;
+  width: 20px;
+  height: 14px;
+  border: 2px solid var(--color-node-border-cse);
+  border-radius: 4px;
+  background: var(--color-node-fill-cse);
+}
+
+.legend__node--external {
+  border-color: var(--color-node-border-external);
+  background: var(--color-node-fill-external);
+}
+
+.focus-view {
+  height: 70vh;
+  min-height: 420px;
+  border: 1px solid var(--color-node-border-external);
+  border-radius: 8px;
+  background: var(--color-background);
+}
+
+.focus-view__loading {
+  padding: 16px;
+  color: var(--color-text-muted);
+}
+
+/* React Flow theming, so its built-in parts use our tokens too */
+.react-flow {
+  --xy-background-color: var(--color-background);
+  --xy-controls-button-background-color: var(--color-background);
+  --xy-controls-button-background-color-hover: var(--color-surface);
+  --xy-controls-button-color: var(--color-text);
+  --xy-controls-button-color-hover: var(--color-text);
+  --xy-controls-button-border-color: var(--color-node-border-external);
+  --xy-attribution-background-color: var(--color-background);
+}
+
+.react-flow__attribution a {
+  color: var(--color-text-muted);
+}
+
+.flow-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Nodes: sizes match NODE_SIZE in src/lib/layout.ts */
+.course-node {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 176px;
+  height: 64px;
+  padding: 6px 10px;
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-node-fill-cse);
+  border: 2px solid var(--color-node-border-cse);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.course-node__id {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.course-node__title,
+.course-node__tag {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+.course-node__tag {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+/* Selected course: filled, thicker border, and aria-current for screen readers */
+.course-node--focus {
+  color: var(--color-text-on-purple);
+  background: var(--color-node-fill-selected);
+  border-width: 4px;
+  padding: 4px 8px; /* keeps the content box the same despite the thicker border */
+}
+
+.course-node--external {
+  background: var(--color-node-fill-external);
+  border-color: var(--color-node-border-external);
+}
+
+.junction-node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 28px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 2px dashed var(--color-edge-one-of);
+  border-radius: 14px;
+}
+
+.junction-node--recommended,
+.other-node--recommended {
+  border-style: dotted;
+  border-color: var(--color-edge-recommended);
+}
+
+.other-node {
+  display: flex;
+  align-items: center;
+  width: 176px;
+  height: 44px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 2px solid var(--color-node-border-external);
+  border-radius: 8px;
+}
