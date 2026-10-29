@@ -9,8 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "data": "node scripts/build-data.ts",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "npm run data && vitest run",
+    "test:watch": "npm run data && vitest"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.0",
