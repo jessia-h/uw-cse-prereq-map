@@ -56,6 +56,9 @@ export const isNonCse = (c: AnyCourse) => !c.id.startsWith('CSE ')
  */
 export const externalTag = (c: AnyCourse) => (isNonCse(c) ? 'Non-CSE' : 'Not in prototype yet')
 
+/** The same distinction in words, for accessible names, the panel, and the List view. */
+export const externalLabel = (c: AnyCourse) => (isNonCse(c) ? 'Non-CSE course' : 'Not in prototype yet')
+
 /** "CSE 311" → "300-level". */
 export const levelTag = (c: AnyCourse) => `${Math.floor(Number(c.id.split(' ').at(-1)) / 100) * 100}-level`
 
@@ -81,7 +84,7 @@ export const RETIRED_PREREQ_NOTE: Record<string, { card: string; advice: string 
 export function courseLabel(course: AnyCourse, unlocks: number): string {
   const parts = [course.title ? `${course.id}, ${course.title}.` : `${course.id}.`]
   const note = RETIRED_PREREQ_NOTE[course.id]
-  if (isExternal(course)) parts.push(isNonCse(course) ? 'Non-CSE course.' : 'Not in prototype yet.')
+  if (isExternal(course)) parts.push(`${externalLabel(course)}.`)
   else if (course.prereq) parts.push(`Requires ${describeReq(course.prereq)}.`)
   else if (note) parts.push(`${note.card}.`)
   else parts.push('No prerequisites.')

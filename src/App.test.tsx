@@ -155,6 +155,21 @@ describe('List view', () => {
     expect(course()).toBe('CSE311')
   })
 
+  it('outside courses are labeled as on the map, in their accessible names too', async () => {
+    const user = renderAt('/?view=list')
+    expect(screen.getByRole('link', { name: 'MATH 126 (Non-CSE course)' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'CSE 163 (Not in prototype yet)' })).toBeTruthy()
+    expect(screen.queryByText(/outside this prototype/)).toBeNull()
+    // The course's own page says the same.
+    await user.click(screen.getByRole('link', { name: 'CSE 163 (Not in prototype yet)' }))
+    expect(screen.getByText('Not in prototype yet. This map doesn’t list its prerequisites.')).toBeTruthy()
+    // And it matches the map card's accessible name.
+    cleanup()
+    renderAt('/')
+    expect((await findNode('CSE 163')).getAttribute('aria-label')).toContain('Not in prototype yet.')
+    expect((await findNode('MATH 126')).getAttribute('aria-label')).toContain('Non-CSE course.')
+  })
+
   it('co-requisites, recommended, and unlocks (CSE 197, CSE 447)', async () => {
     const user = renderAt('/?course=CSE197&view=list')
     expect(screen.getByText('Take with one of these:')).toBeTruthy()

@@ -13,7 +13,7 @@ import {
   coreqText,
   formatDate,
   isExternal,
-  isNonCse,
+  externalLabel,
   keepCourseIdsTogether,
   reqItems,
   type AnyCourse,
@@ -62,9 +62,7 @@ export function DetailPanel(props: {
 
       {external ? (
         <p className="detail-panel__answer">
-          {isNonCse(course)
-            ? 'Non-CSE course. This map doesn’t list its prerequisites.'
-            : 'Not in prototype yet. This map doesn’t list its prerequisites.'}
+          {externalLabel(course)}. This map doesn’t list its prerequisites.
         </p>
       ) : (
         <p className="detail-panel__answer">{keepCourseIdsTogether(answerSentence(course))}</p>

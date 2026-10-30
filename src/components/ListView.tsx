@@ -6,7 +6,7 @@ import type { MouseEvent, ReactNode, RefObject } from 'react'
 import type { Req } from '../data/schema.ts'
 import { shownData } from '../data/courses.ts'
 import { toParam } from '../hooks/useUrlState.ts'
-import { AUDIENCE_LABEL, isExternal, isNonCse, NO_UNLOCKS, RETIRED_PREREQ_NOTE, type AnyCourse } from '../lib/describe.ts'
+import { AUDIENCE_LABEL, externalLabel, isExternal, NO_UNLOCKS, RETIRED_PREREQ_NOTE, type AnyCourse } from '../lib/describe.ts'
 import { prereqGraph } from './flow.ts'
 
 // No retired courses (see lib/shown.ts).
@@ -24,7 +24,8 @@ function CourseLink({ id, onSelect }: { id: string; onSelect: (id: string) => vo
     onSelect(id)
   }
   let text = course?.title ? `${id}, ${course.title}` : id
-  if (course && isExternal(course)) text += ' (outside this prototype)'
+  // Same labels as the map's cards and accessible names.
+  if (course && isExternal(course)) text += ` (${externalLabel(course)})`
   return (
     <a href={`?course=${toParam(id)}&view=list`} onClick={onClick}>
       {text}
@@ -108,7 +109,7 @@ export function ListView(props: {
       </h2>
       <p>
         {external
-          ? `${isNonCse(course) ? 'Non-CSE course' : 'Not in prototype yet'}. Not part of this prototype.`
+          ? `${externalLabel(course)}. This map doesn’t list its prerequisites.`
           : `${course.credits} credits. Audience: ${AUDIENCE_LABEL[course.audience]}.`}
       </p>
 

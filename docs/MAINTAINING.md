@@ -53,7 +53,7 @@ No local setup is needed for small edits: you can edit YAML in the GitHub web ed
    - Co-requisite: `CSE197.yaml`
    - Recommended, including "before or concurrently": `CSE447.yaml`
    - Retired alternatives: `CSE461.yaml`
-4. **Update the evidence:** refresh the `sources` URL and set `verified` to today's date, your UW NetID, and `method: catalog` (or `adviser-confirmed`).
+4. **Update the evidence:** refresh the `sources` URL and set `verified` to today's date, `by: peer-adviser` (Git history records who made the change), and `method: catalog` (or `adviser-confirmed`).
 5. **If sources disagree,** add a line to `conflicts` naming both sources and the date.
 6. **Check it locally** (if running locally):
    ```bash
@@ -149,7 +149,7 @@ Target: WCAG 2.1 AA. The List view must let a screen-reader user answer every qu
 | Normal text | 4.5:1 against its background |
 | Large text (≥ 24 px, or ≥ 18.7 px bold) | 3:1 |
 | Lines, arrows, card borders that carry meaning, focus ring | 3:1 against adjacent colors |
-| Faded (not-selected) courses | Text still 4.5:1; fade fills and lines, not text |
+| Faded (not-selected) courses | Text may be muted but must still meet 4.5:1; fade fills and lines more than text |
 
 - All colors live in `src/theme.ts`. Add any new color there, and add it to `src/theme.test.ts` so the contrast check runs automatically.
 - UW purple is safe for text and lines. UW gold fails on white and is decoration only.
