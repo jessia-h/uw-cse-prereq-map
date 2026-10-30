@@ -9,6 +9,7 @@ import { courseData } from '../data/courses.ts'
 import { buildFocusGraph, type FocusGraph } from '../lib/focusGraph.ts'
 import { layoutFocusGraph, type Layout } from '../lib/layout.ts'
 import { prereqGraph, toFlow } from './flow.ts'
+import { GraphKeyboard } from './GraphKeyboard.tsx'
 import { CourseNode, JunctionNode, OtherNode } from './nodes.tsx'
 import { RoutedEdge } from './RoutedEdge.tsx'
 
@@ -58,6 +59,7 @@ export function FocusView(props: { focusId: string; showRecommended: boolean; on
           zoomOnDoubleClick={false}
         >
           <Controls showInteractive={false} />
+          {layout && <GraphKeyboard model={layout.model} layout={layout.result} />}
         </ReactFlow>
       ) : (
         <p className="graph-view__loading">Laying out…</p>

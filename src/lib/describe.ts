@@ -74,12 +74,16 @@ export function reqItems(req: Req): string[] {
   return ('all' in req ? req.all : [req]).map((r) => capitalize(describeReq(r)))
 }
 
+// Wording pending adviser confirmation (docs/adviser-questions.md, question 2).
 export const AUDIENCE_LABEL: Record<Course['audience'], string> = {
-  majors: 'Majors',
-  open: 'Open to all',
-  nonmajor: 'Non-majors',
+  majors: 'Allen School majors only',
+  open: 'Open to all students',
+  nonmajor: 'Designed for non-majors',
   unknown: 'Not yet confirmed',
 }
+
+/** Shown wherever a course unlocks nothing among the prototype's courses. */
+export const NO_UNLOCKS = 'None among the courses in this prototype.'
 
 /**
  * Link to the course in the UW Course Catalog. CSE courses link to the

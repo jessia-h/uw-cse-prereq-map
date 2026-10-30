@@ -128,3 +128,11 @@ export function noteAbove(model: FocusGraph, layout: Layout, ids: string[], text
     selectable: false,
   }
 }
+
+/** Width of the detail panel overlay on the full map, in px. Matches App.css. */
+export const PANEL_WIDTH = 360
+
+/** Screen pixels the panel overlay covers on the right of a map this wide (panel plus its margins). */
+export function panelCover(mapWidth: number): number {
+  return Math.min(PANEL_WIDTH, mapWidth / 2) + 16
+}

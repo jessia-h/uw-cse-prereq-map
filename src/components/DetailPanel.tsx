@@ -5,6 +5,7 @@ import type { RefObject } from 'react'
 import { courseData } from '../data/courses.ts'
 import {
   AUDIENCE_LABEL,
+  NO_UNLOCKS,
   catalogUrl,
   coreqText,
   formatDate,
@@ -46,7 +47,8 @@ export function DetailPanel(props: {
       <div className="detail-panel__top">
         <h2 id="detail-heading" ref={headingRef} tabIndex={-1}>
           {course.id}
-          {course.title && <span className="detail-panel__title">{course.title}</span>}
+          {/* The space keeps "CSE 311 Foundations…" apart in the accessible name. */}
+          {course.title && <span className="detail-panel__title"> {course.title}</span>}
         </h2>
         <button type="button" className="detail-panel__close" onClick={onClose}>
           Close<span className="visually-hidden"> details for {course.id}</span>
@@ -96,7 +98,7 @@ export function DetailPanel(props: {
 
       <h3>Unlocks</h3>
       {unlocks.length === 0 ? (
-        <p>No course in this map lists it as a prerequisite.</p>
+        <p>{NO_UNLOCKS}</p>
       ) : (
         <ul className="detail-panel__unlocks">
           {unlocks.map((u) => (

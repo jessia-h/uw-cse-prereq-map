@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
     base: env.BASE_PATH || './',
     plugins: [react()],
     test: {
-      include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+      include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'scripts/**/*.test.ts'],
     },
   }
 })

@@ -1,16 +1,22 @@
 // The selected course and view live in the URL (?course=CSE451&view=focus),
 // so links can be shared and the browser's Back button steps through earlier
-// selections. Both views read the same ?course=, so switching keeps it.
+// selections. All views read the same ?course=, so switching keeps it.
+//
+// With no `view` parameter, the view is the default for the screen width:
+// the whole map on wide screens, the list under 640px. An explicit choice is
+// always written to the URL, so it sticks.
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 
-export type View = 'map' | 'focus'
+export type View = 'map' | 'focus' | 'list'
+
+const VIEWS: View[] = ['map', 'focus', 'list']
 
 export interface UrlState {
   /** The `course` parameter as written, e.g. "CSE451"; null if absent. */
   course: string | null
-  /** "map" (the default, no parameter) or "focus" (&view=focus). */
-  view: View
+  /** The `view` parameter, or null for the screen's default view. */
+  view: View | null
 }
 
 // pushState doesn't fire an event, so tell subscribers ourselves.
@@ -36,7 +42,8 @@ export function useUrlState(): [UrlState, (next: Partial<UrlState>) => void] {
   const search = useSyncExternalStore(subscribe, getSearch)
   const state = useMemo((): UrlState => {
     const params = new URLSearchParams(search)
-    return { course: params.get('course'), view: params.get('view') === 'focus' ? 'focus' : 'map' }
+    const view = params.get('view') as View | null
+    return { course: params.get('course'), view: view && VIEWS.includes(view) ? view : null }
   }, [search])
 
   /** Change some of the state and add a history entry. */
@@ -47,7 +54,7 @@ export function useUrlState(): [UrlState, (next: Partial<UrlState>) => void] {
       else url.searchParams.delete('course')
     }
     if ('view' in next) {
-      if (next.view === 'focus') url.searchParams.set('view', 'focus')
+      if (next.view) url.searchParams.set('view', next.view)
       else url.searchParams.delete('view')
     }
     if (url.href === window.location.href) return

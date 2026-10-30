@@ -178,6 +178,7 @@ main,
 .link-button {
   padding: 0;
   font: inherit;
+  text-align: left; /* buttons center text by default; wrapped links should read like links */
   color: var(--color-link);
   text-decoration: underline;
   background: none;
@@ -221,7 +222,7 @@ main,
   display: inline;
 }
 
-.legend h3 {
+.legend h2 {
   margin: 0 0 4px;
   font-size: 1rem;
 }
@@ -564,7 +565,7 @@ main,
   right: 8px;
   bottom: 8px;
   z-index: 5;
-  width: 360px;
+  width: min(360px, 50%); /* matches panelCover() in flow.ts */
 }
 
 /* Focus view: the panel sits beside the graph, so it never covers it. */
@@ -595,5 +596,120 @@ main,
     height: auto;
     min-height: 0;
     margin-top: 12px;
+  }
+}
+
+/* Skip link: first thing on the page, visible when focused */
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 8px 12px;
+  font-weight: 700;
+  color: var(--color-text-on-purple);
+  background: var(--color-uw-purple);
+  border-radius: 6px;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.prototype-banner {
+  margin: 0;
+  padding: 8px 16px;
+  text-align: center;
+  color: var(--color-warning-text);
+  background: var(--color-warning-fill);
+  border-bottom: 1px solid var(--color-warning-border);
+}
+
+/* List view */
+.list-view {
+  max-width: 70ch;
+}
+
+.list-view h2 {
+  color: var(--color-uw-purple);
+}
+
+.list-view h3 {
+  margin: 20px 0 4px;
+}
+
+.list-view ul {
+  margin: 4px 0;
+  padding-left: 24px;
+}
+
+.list-view li {
+  margin: 4px 0;
+}
+
+.list-view__lead {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+.list-view li > .list-view__lead {
+  margin-top: 0;
+}
+
+.list-view__all {
+  columns: 2 16rem;
+}
+
+/* Windows High Contrast / forced colors: the browser swaps in system colors
+   and drops backgrounds, so states shown by fill need system-color fills,
+   and SVG lines (set inline) need system colors too. Dash patterns and line
+   widths still carry the meaning. */
+@media (forced-colors: active) {
+  .course-node--selected,
+  .course-node.course-node--selected,
+  .view-switch button[aria-pressed='true'],
+  .legend__node--selected {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .course-node--selected .course-node__tag {
+    color: HighlightText;
+  }
+
+  .react-flow__edge-path,
+  .legend__swatch line {
+    stroke: CanvasText !important;
+  }
+
+  .react-flow__arrowhead polyline,
+  .react-flow__edge marker path {
+    fill: CanvasText !important;
+    stroke: CanvasText !important;
+  }
+
+  .react-flow__edge-text {
+    fill: CanvasText !important;
+  }
+
+  .react-flow__edge-textbg {
+    fill: Canvas !important;
+  }
+
+  .course-node--faded,
+  .junction-node--faded,
+  .other-node--faded {
+    border-style: dashed;
+  }
+
+  .skip-link {
+    border: 2px solid ButtonText;
+  }
+
+  :focus-visible {
+    outline-color: Highlight;
   }
 }

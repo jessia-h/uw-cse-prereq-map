@@ -14,6 +14,7 @@ import { useMediaQuery, WIDE } from '../hooks/useMediaQuery.ts'
 import { buildFocusGraph, buildFullGraph, INTRO_SEQUENCE, introLinkIds } from '../lib/focusGraph.ts'
 import { layoutFocusGraph, type Layout } from '../lib/layout.ts'
 import { CenterOn } from './CenterOn.tsx'
+import { GraphKeyboard } from './GraphKeyboard.tsx'
 import { nodeCenter, noteAbove, prereqGraph, toFlow } from './flow.ts'
 import { CourseNode, JunctionNode, NoteNode, OtherNode } from './nodes.tsx'
 import { RoutedEdge } from './RoutedEdge.tsx'
@@ -27,10 +28,6 @@ const fullModel = buildFullGraph(courseData)
 const introLinks = introLinkIds(fullModel)
 
 const INTRO_NOTE = 'Intro sequence: choose your starting point with Guided Self-Placement'
-
-/** Width of the detail panel overlay in px, plus its gap from the map edge. Matches App.css. */
-export const PANEL_WIDTH = 360
-const PANEL_COVER = PANEL_WIDTH + 16
 
 export function FullMapView(props: {
   selectedId: string | null
@@ -100,8 +97,9 @@ export function FullMapView(props: {
               ready={viewportReady}
               target={center}
               start={INTRO_SEQUENCE}
-              coveredRight={panel && wide ? PANEL_COVER : 0}
+              panelOpen={!!panel && wide}
             />
+            {layout && <GraphKeyboard model={fullModel} layout={layout} panelOpen={!!panel && wide} />}
           </ReactFlow>
         ) : (
           <p className="graph-view__loading">Laying out…</p>

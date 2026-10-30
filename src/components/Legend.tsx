@@ -14,7 +14,7 @@ function Line({ stroke, dash, width = 2 }: { stroke: string; dash?: string; widt
 export function Legend({ showRecommended, highlighting }: { showRecommended: boolean; highlighting?: boolean }) {
   return (
     <section className="legend" aria-labelledby="legend-heading">
-      <h3 id="legend-heading">Key</h3>
+      <h2 id="legend-heading">Key</h2>
       <ul>
         <li>
           <Line stroke={colors.edgeRequired} /> Solid line: required

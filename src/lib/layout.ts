@@ -29,7 +29,7 @@ export interface Layout {
   positions: Map<string, Point>
   /** Each edge's route from elk (start, bends, end), so lines go around nodes. */
   routes: Map<string, Point[]>
-  /** Center of each edge's minimum-grade label, placed by elk near the source end. */
+  /** Center of each edge's minimum-grade label. elk places it mid-edge and reserves space for it, so labels never overlap (tested). */
   labels: Map<string, Point>
 }
 
@@ -61,7 +61,7 @@ export async function layoutFocusGraph(graph: FocusGraph): Promise<Layout> {
                   id: `${e.id}#label`,
                   text: minGradeLabel(e.minGrade),
                   ...LABEL_SIZE,
-                  layoutOptions: { 'elk.edgeLabels.placement': 'TAIL' },
+                  layoutOptions: { 'elk.edgeLabels.placement': 'CENTER' },
                 },
               ],
       }),

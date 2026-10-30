@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { courseData } from '../data/courses.ts'
 import { AUDIENCE_LABEL, catalogUrl, coreqText, courseLabel, describeReq, formatDate, reqItems } from './describe.ts'
 import { buildFocusGraph, buildFullGraph, introLinkIds, type FocusGraph } from './focusGraph.ts'
-import { layoutFocusGraph, nodeSize } from './layout.ts'
+import { LABEL_SIZE, layoutFocusGraph, nodeSize } from './layout.ts'
 import { buildGraph } from './prereq.ts'
 import { searchCourses } from './search.ts'
 
@@ -317,5 +317,36 @@ describe('detail panel text', () => {
 
   it('dates are formatted without a time zone shift', () => {
     expect(formatDate('2026-10-22')).toBe('October 22, 2026')
+  })
+})
+
+describe('minimum-grade labels stay readable', () => {
+  type Box = { id: string; x: number; y: number; w: number; h: number }
+  const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+
+  async function problems(g: FocusGraph) {
+    const layout = await layoutFocusGraph(g)
+    const labels: Box[] = [...layout.labels].map(([id, c]) => ({
+      id,
+      x: c.x - LABEL_SIZE.width / 2,
+      y: c.y - LABEL_SIZE.height / 2,
+      w: LABEL_SIZE.width,
+      h: LABEL_SIZE.height,
+    }))
+    const nodes: Box[] = g.nodes.map((n) => ({ id: n.id, ...layout.positions.get(n.id)!, w: nodeSize(n).width, h: nodeSize(n).height }))
+    const found: string[] = []
+    labels.forEach((a, i) => {
+      for (const b of labels.slice(i + 1)) if (overlaps(a, b)) found.push(`${a.id} overlaps ${b.id}`)
+      for (const n of nodes) if (overlaps(a, n)) found.push(`${a.id} overlaps node ${n.id}`)
+    })
+    return found
+  }
+
+  it('no overlaps on the full map', async () => {
+    expect(await problems(buildFullGraph(courseData))).toEqual([])
+  })
+
+  it('no overlaps in any focus view', async () => {
+    for (const c of all) expect(await problems(focus(c.id)), c.id).toEqual([])
   })
 })

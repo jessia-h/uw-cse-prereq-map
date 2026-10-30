@@ -32,6 +32,9 @@ export function SearchBox({ onSelect }: { onSelect: (id: string) => void }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
+      <p className="visually-hidden" role="status">
+        {query.trim() && `${results.length} matching ${results.length === 1 ? 'course' : 'courses'}`}
+      </p>
       {query.trim() && (
         <ul className="search__results">
           {results.length === 0 && <li className="search__empty">No matching courses.</li>}

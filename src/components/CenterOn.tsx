@@ -3,15 +3,16 @@
 // each new selection, zooming in if far out. Instant if the user prefers
 // reduced motion. Must be rendered inside <ReactFlow>.
 //
-// `coveredRight` is how many screen pixels on the right are covered (by the
-// detail panel); the course is centered in the area left of it.
+// When `panelOpen`, the detail panel covers the map's right side; the course
+// is centered in the area left of it.
 //
 // Note: this doesn't use React Flow's useNodesInitialized(). That flag resets
 // whenever new node objects arrive (every selection, for highlighting), and
 // our nodes have fixed sizes, so nothing re-measures them to set it again.
 
-import { useReactFlow } from '@xyflow/react'
+import { useReactFlow, useStore } from '@xyflow/react'
 import { useEffect, useRef } from 'react'
+import { panelCover } from './flow.ts'
 
 const MIN_ZOOM_ON_SELECT = 0.8
 
@@ -19,10 +20,12 @@ export function CenterOn(props: {
   ready: boolean
   target: { id: string; x: number; y: number } | null
   start: string[]
-  coveredRight: number
+  panelOpen: boolean
 }) {
-  const { ready, target, start, coveredRight } = props
+  const { ready, target, start, panelOpen } = props
   const flow = useReactFlow()
+  const mapWidth = useStore((s) => s.width)
+  const coveredRight = panelOpen ? panelCover(mapWidth) : 0
   const first = useRef(true)
   const { id, x, y } = target ?? {}
 

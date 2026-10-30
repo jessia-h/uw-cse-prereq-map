@@ -44,6 +44,7 @@ export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
         type="button"
         className={cls(
           'course-node',
+          'nopan', // React Flow: pressing a course doesn't start panning the map
           data.selected && 'course-node--selected',
           (data.external || data.retired) && 'course-node--external',
           data.faded && 'course-node--faded',
@@ -51,6 +52,9 @@ export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
         aria-label={data.label}
         data-course-id={data.courseId} // lets the detail panel return focus here
         aria-current={data.selected ? 'true' : undefined}
+        // React Flow sets pointer-events: none on node wrappers when nodes can't
+        // be selected or dragged; without this, mouse clicks fall through to the map.
+        style={{ pointerEvents: 'auto' }}
         onClick={() => data.onSelect(data.courseId)}
       >
         <span className="course-node__id">{data.courseId}</span>
