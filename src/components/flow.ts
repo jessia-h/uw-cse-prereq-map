@@ -3,37 +3,44 @@
 // same way.
 
 import { MarkerType, type Edge, type Node } from '@xyflow/react'
-import { courseData } from '../data/courses.ts'
-import { courseLabel, coreqText, isExternal } from '../lib/describe.ts'
+import { shownData } from '../data/courses.ts'
+import { courseLabel, coreqText, externalTag, isExternal, levelTag, RETIRED_PREREQ_NOTE } from '../lib/describe.ts'
 import type { EdgeKind, FocusGraph } from '../lib/focusGraph.ts'
 import { minGradeLabel, nodeSize, type Layout } from '../lib/layout.ts'
 import { buildGraph } from '../lib/prereq.ts'
 import { colors } from '../theme.ts'
+import type { Look } from './nodes.tsx'
 
-export const prereqGraph = buildGraph(courseData)
+/** Prerequisite links between the courses the interface shows (no retired courses). */
+export const prereqGraph = buildGraph(shownData)
 
-// Line style carries the meaning; faded lines keep their dash pattern.
+// Line style carries the meaning, in every look: solid, dashed, dotted.
 const DASH: Record<EdgeKind, string | undefined> = { required: undefined, 'one-of': '8 5', recommended: '2 5' }
-const STROKE: Record<EdgeKind, string> = {
+const PATH_STROKE: Record<EdgeKind, string> = {
   required: colors.edgeRequired,
   'one-of': colors.edgeOneOf,
   recommended: colors.edgeRecommended,
 }
+// Selection is the only strong visual: purple and thicker on the path, grey
+// and thin everywhere else (still >= 3:1).
+const WIDTH: Record<Look, number> = { path: 2.5, quiet: 1.25, faded: 1 }
 
 export interface FlowOptions {
   onSelect: (id: string) => void
   /** Course ids that get aria-current and the selected style. */
   selected?: string | null
-  /** Ids to keep at full strength; everything else fades. null = nothing fades. */
+  /** Nothing selected: everything gets the quiet look. */
+  quiet?: boolean
+  /** Ids on the selected path; everything else fades. null = everything is on the path. */
   highlight?: Set<string> | null
-  /** Hide dotted recommendation edges, and junctions/boxes that only serve them. */
+  /** Hide dotted recommendation edges, and the junctions, boxes and courses that only serve them. */
   hideRecommended?: boolean
   /** Recommendation ids to show even when the rest are hidden (the intro sequence). */
   alwaysShow?: Set<string>
 }
 
 export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { nodes: Node[]; edges: Edge[] } {
-  const faded = (id: string) => !!opts.highlight && !opts.highlight.has(id)
+  const look = (id: string): Look => (opts.quiet ? 'quiet' : opts.highlight && !opts.highlight.has(id) ? 'faded' : 'path')
   const hide = (id: string) => !!opts.hideRecommended && !opts.alwaysShow?.has(id)
 
   const nodes: Node[] = model.nodes.map((n) => {
@@ -44,17 +51,25 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
     }
     if (n.kind === 'course') {
       const course = n.course
+      const external = isExternal(course)
       return {
         ...base,
+        // In the focus view, courses there only because of a recommendation.
+        hidden: n.role === 'recommended' && hide(n.id),
         type: 'course',
         data: {
           courseId: n.id,
           title: course.title,
           selected: opts.selected === n.id,
-          faded: faded(n.id),
-          external: isExternal(course),
-          retired: course.status === 'retired',
-          coreq: !isExternal(course) && course.coreq ? coreqText(course.coreq) : undefined,
+          look: look(n.id),
+          external,
+          nonCse: external && externalTag(course) === 'Non-CSE',
+          tag: external ? externalTag(course) : levelTag(course),
+          extra: external
+            ? undefined
+            : course.coreq
+              ? coreqText(course.coreq)
+              : RETIRED_PREREQ_NOTE[n.id]?.card,
           label: courseLabel(course, prereqGraph.unlocks.get(n.id)?.length ?? 0),
           onSelect: opts.onSelect,
         },
@@ -62,16 +77,16 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
     }
     const hidden = n.recommended && hide(n.id)
     if (n.kind === 'junction') {
-      return { ...base, hidden, type: 'junction', data: { label: n.label, recommended: n.recommended, faded: faded(n.id) } }
+      return { ...base, hidden, type: 'junction', data: { label: n.label, recommended: n.recommended, look: look(n.id) } }
     }
-    return { ...base, hidden, type: 'other', data: { text: n.text, recommended: n.recommended, faded: faded(n.id) } }
+    return { ...base, hidden, type: 'other', data: { text: n.text, recommended: n.recommended, look: look(n.id) } }
   })
   // Tab order follows the picture: left to right, then top to bottom.
   nodes.sort((a, b) => a.position.x - b.position.x || a.position.y - b.position.y)
 
   const edges: Edge[] = model.edges.map((e) => {
-    const isFaded = faded(e.id)
-    const stroke = isFaded ? colors.edgeFaded : STROKE[e.kind]
+    const edgeLook = look(e.id)
+    const stroke = edgeLook === 'path' ? PATH_STROKE[e.kind] : colors.edgeQuiet
     const label = layout.labels.get(e.id)
     return {
       id: e.id,
@@ -79,19 +94,27 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
       target: e.target,
       type: 'routed',
       hidden: e.kind === 'recommended' && hide(e.id),
-      // Highlighted lines draw on top of faded ones.
-      zIndex: isFaded ? 0 : 1,
+      // Lines on the path draw on top of the others.
+      zIndex: edgeLook === 'path' ? 1 : 0,
       data: {
         points: layout.routes.get(e.id) ?? [],
         label: e.minGrade !== undefined && label ? { text: minGradeLabel(e.minGrade), ...label } : undefined,
+        look: edgeLook,
       },
       style: {
         stroke,
-        strokeWidth: opts.highlight && !isFaded ? 3 : isFaded ? 1.5 : 2,
+        strokeWidth: WIDTH[edgeLook],
         strokeDasharray: DASH[e.kind],
         strokeLinecap: 'round',
       },
-      markerEnd: { type: MarkerType.ArrowClosed, color: stroke, width: 16, height: 16 },
+      // Sized in px, so arrowheads stay readable on thin lines.
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: stroke,
+        markerUnits: 'userSpaceOnUse',
+        width: edgeLook === 'path' ? 14 : 11,
+        height: edgeLook === 'path' ? 14 : 11,
+      },
     }
   })
   return { nodes, edges }

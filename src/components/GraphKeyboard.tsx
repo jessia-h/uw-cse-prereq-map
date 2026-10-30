@@ -73,7 +73,7 @@ export function GraphKeyboard(props: { model: FocusGraph; layout: Layout; panelO
       } else return
 
       const target = candidates
-        .filter((c) => courses.has(c))
+        .filter((c) => courses.has(c) && buttonFor(c)) // drawn and not hidden
         .map((c) => ({ id: c, ...courses.get(c)! }))
         // Up/Down: prefer the same column, then the nearest row.
         .sort((a, b) => Math.abs(a.cx - from.cx) / 4 + Math.abs(a.cy - from.cy) - (Math.abs(b.cx - from.cx) / 4 + Math.abs(b.cy - from.cy)))[0]

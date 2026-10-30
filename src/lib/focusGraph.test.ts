@@ -1,12 +1,25 @@
 import { describe, expect, it } from 'vitest'
-import { courseData } from '../data/courses.ts'
-import { AUDIENCE_LABEL, catalogUrl, coreqText, courseLabel, describeReq, formatDate, reqItems } from './describe.ts'
+import { courseData as rawData, shownData as courseData } from '../data/courses.ts'
+import {
+  AUDIENCE_LABEL,
+  answerSentence,
+  catalogUrl,
+  coreqText,
+  courseLabel,
+  describeReq,
+  formatDate,
+  keepCourseIdsTogether,
+  levelTag,
+  reqItems,
+  RETIRED_PREREQ_NOTE,
+} from './describe.ts'
 import { buildFocusGraph, buildFullGraph, introLinkIds, type FocusGraph } from './focusGraph.ts'
 import { LABEL_SIZE, layoutFocusGraph, nodeSize } from './layout.ts'
 import { buildGraph } from './prereq.ts'
 import { searchCourses } from './search.ts'
 
-// Uses the real course data (rebuilt by `npm test`).
+// Uses the real course data (rebuilt by `npm test`), as the interface shows
+// it: without retired courses (lib/shown.ts). `rawData` is the full data.
 
 const graph = buildGraph(courseData)
 const all = [...courseData.courses, ...courseData.external]
@@ -26,7 +39,7 @@ describe('buildFocusGraph', () => {
   it('CSE 451: all ancestors, required edges solid, no junction for a plain AND', () => {
     const g = focus('CSE 451')
     expect(courseIds(g, 'ancestor')).toEqual(
-      ['CSE 123', 'CSE 142', 'CSE 143', 'CSE 311', 'CSE 332', 'CSE 333', 'CSE 351', 'MATH 126', 'MATH 135'],
+      ['CSE 123', 'CSE 143', 'CSE 311', 'CSE 332', 'CSE 333', 'CSE 351', 'MATH 126', 'MATH 135'],
     )
     expect(edge(g, 'CSE 332', 'CSE 451')).toBe('required')
     expect(edge(g, 'CSE 333', 'CSE 451')).toBe('required')
@@ -34,14 +47,14 @@ describe('buildFocusGraph', () => {
     expect(courseIds(g, 'descendant')).toEqual([]) // nothing in the map needs CSE 451
   })
 
-  it('CSE 469: two "one of 2" junctions with dashed edges from each option', () => {
+  it('CSE 469: two "1 of 2" junctions with dashed edges from each option', () => {
     const g = focus('CSE 469')
     const into469 = g.edges.filter((e) => e.target === 'CSE 469')
     expect(into469).toHaveLength(2)
     expect(into469.every((e) => e.kind === 'required')).toBe(true)
     for (const e of into469) {
       const j = g.nodes.find((n) => n.id === e.source)!
-      expect(j).toMatchObject({ kind: 'junction', label: 'one of 2' })
+      expect(j).toMatchObject({ kind: 'junction', label: '1 of 2' })
     }
     const options = g.edges.filter((e) => into469.some((j) => j.source === e.target)).map((e) => [e.source, e.kind])
     expect(options.sort()).toEqual([
@@ -59,21 +72,26 @@ describe('buildFocusGraph', () => {
 
     const g123 = focus('CSE 123')
     const to351 = g123.edges.find((e) => e.target === 'CSE 351')!
-    expect(g123.nodes.find((n) => n.id === to351.source)).toMatchObject({ kind: 'junction', label: 'one of 2' })
+    expect(g123.nodes.find((n) => n.id === to351.source)).toMatchObject({ kind: 'junction', label: '1 of 2' })
     // Only the focus course feeds the junction; CSE 143 isn't drawn on the right.
     expect(g123.edges.filter((e) => e.target === to351.source).map((e) => e.source)).toEqual(['CSE 123'])
     expect(courseIds(g123)).not.toContain('CSE 143')
   })
 
-  it('CSE 414: three options → "one of 3", including external CSE 163', () => {
+  it('CSE 414: three options → "1 of 3", including external CSE 163', () => {
     const g = focus('CSE 414')
-    expect(junctions(g).map((j) => j.kind === 'junction' && j.label)).toEqual(['one of 3'])
+    expect(junctions(g).map((j) => j.kind === 'junction' && j.label)).toEqual(['1 of 3'])
     expect(edge(g, 'CSE 163', junctions(g)[0].id)).toBe('one-of')
   })
 
-  it('CSE 461: retired alternatives appear as nodes', () => {
+  it('CSE 461: retired alternatives are not drawn; 332 and 333 are solid required lines', () => {
     const g = focus('CSE 461')
-    expect(courseIds(g)).toEqual(expect.arrayContaining(['CSE 303', 'CSE 326']))
+    expect(courseIds(g)).not.toContain('CSE 303')
+    expect(courseIds(g)).not.toContain('CSE 326')
+    // No "1 of 1" pills: both lines into CSE 461 come straight from courses.
+    expect(g.edges.filter((e) => e.target === 'CSE 461').map((e) => e.source).sort()).toEqual(['CSE 332', 'CSE 333'])
+    expect(edge(g, 'CSE 332', 'CSE 461')).toBe('required')
+    expect(edge(g, 'CSE 333', 'CSE 461')).toBe('required')
   })
 
   it('recommended edges are hidden by default and dotted when shown (CSE 447)', () => {
@@ -92,7 +110,7 @@ describe('buildFocusGraph', () => {
   it('recommended OR with an other leaf (CSE 122)', () => {
     const g = focus('CSE 122', true)
     const j = junctions(g)[0]
-    expect(j).toMatchObject({ label: 'one of 2', recommended: true })
+    expect(j).toMatchObject({ label: '1 of 2', recommended: true })
     expect(g.nodes.find((n) => n.kind === 'other')).toMatchObject({ text: 'Guided Self-Placement' })
     expect(g.edges.filter((e) => e.target === j.id).every((e) => e.kind === 'recommended')).toBe(true)
   })
@@ -120,7 +138,7 @@ describe('buildFullGraph', () => {
 
   it('has every course and outside course', () => {
     expect(courseIds(full)).toEqual(all.map((c) => c.id).sort())
-    expect(courseIds(full)).toHaveLength(35)
+    expect(courseIds(full)).toHaveLength(32) // 35 in the data, minus 3 retired
   })
 
   it('every focus graph is a subset of the full map, so highlighting matches the Focus view', () => {
@@ -219,9 +237,9 @@ describe('describe', () => {
     )
   })
 
-  it('external and retired stubs', () => {
-    expect(courseLabel(course('MATH 126'), 1)).toBe('MATH 126. Not part of this map. Unlocks 1 course.')
-    expect(courseLabel(course('CSE 142'), 1)).toBe('CSE 142. Retired course. Not part of this map. Unlocks 1 course.')
+  it('courses outside the prototype: non-CSE, and CSE not yet encoded', () => {
+    expect(courseLabel(course('MATH 126'), 1)).toBe('MATH 126. Non-CSE course. Unlocks 1 course.')
+    expect(courseLabel(course('CSE 163'), 1)).toBe('CSE 163. Not in prototype yet. Unlocks 1 course.')
   })
 
   it('minimum grades are in the accessible names (CSE 331, CSE 414)', () => {
@@ -348,5 +366,80 @@ describe('minimum-grade labels stay readable', () => {
 
   it('no overlaps in any focus view', async () => {
     for (const c of all) expect(await problems(focus(c.id)), c.id).toEqual([])
+  })
+})
+
+describe('retired courses are hidden from the interface', () => {
+  const retired = rawData.external.filter((c) => c.status === 'retired').map((c) => c.id)
+  const mentions = (value: unknown) => retired.filter((id) => JSON.stringify(value).includes(`"${id}"`))
+
+  it('the data still has them, and eligibility logic still uses the full data', () => {
+    expect(retired).toEqual(['CSE 142', 'CSE 303', 'CSE 326'])
+  })
+
+  it('no graph, requirement, or search result mentions one', () => {
+    expect(mentions(buildFullGraph(courseData))).toEqual([])
+    for (const c of all) expect(mentions(focus(c.id, true)), c.id).toEqual([])
+    expect(mentions(courseData)).toEqual([])
+    expect(searchCourses('CSE 142', all).map((c) => c.id)).not.toContain('CSE 142')
+  })
+
+  it('accessible names and panel sentences never name one', () => {
+    for (const c of all) {
+      for (const text of [courseLabel(c, 0), 'prereq' in c ? answerSentence(c) : '']) {
+        for (const id of retired) expect(text, c.id).not.toContain(id)
+      }
+    }
+  })
+
+  it('the catalog wording is still verbatim', () => {
+    expect(courseData.courses.find((c) => c.id === 'CSE 461')!.prereqText).toBe(
+      'Prerequisite: either CSE 326 or CSE 332; either CSE 303 or CSE 333.',
+    )
+  })
+
+  it('every course whose only prerequisites are retired has a note (CSE 143)', () => {
+    const emptied = rawData.courses
+      .filter((c) => c.status === 'active' && c.prereq && !courseData.courses.find((s) => s.id === c.id)!.prereq)
+      .map((c) => c.id)
+    expect(emptied).toEqual(['CSE 143'])
+    for (const id of emptied) expect(RETIRED_PREREQ_NOTE[id], id).toBeDefined()
+    expect(courseLabel(course('CSE 143'), 0)).toBe(
+      'CSE 143, Computer Programming II. For students who already completed an earlier intro course.',
+    )
+  })
+})
+
+describe('panel answer sentence', () => {
+  const answer = (id: string) => answerSentence(courseData.courses.find((c) => c.id === id)!)
+
+  it('a shared minimum grade is said once (CSE 311)', () => {
+    expect(answer('CSE 311')).toBe(
+      'To take CSE 311, you need one of CSE 123 or CSE 143, and one of MATH 126 or MATH 135, each with a minimum grade of 2.0.',
+    )
+  })
+
+  it('no grades (CSE 469); retired options gone (CSE 461)', () => {
+    expect(answer('CSE 469')).toBe('To take CSE 469, you need one of E E 271 or CSE 369, and one of CSE 123 or CSE 143.')
+    expect(answer('CSE 461')).toBe('To take CSE 461, you need CSE 332 and CSE 333.')
+  })
+
+  it('no prerequisites, co-requisites, and the CSE 143 note', () => {
+    expect(answer('CSE 121')).toBe('CSE 121 has no prerequisites listed in the catalog.')
+    expect(answer('CSE 197')).toBe(
+      'CSE 197 has no prerequisites listed in the catalog. Take with one of CSE 121, CSE 122, CSE 123.',
+    )
+    expect(answer('CSE 143')).toBe(
+      'For students who already completed an earlier intro course. Most students should take CSE 122 or CSE 123 instead.',
+    )
+  })
+
+  it('course numbers stay together when the sentence wraps', () => {
+    expect(keepCourseIdsTogether('one of E E 271 or CSE 369')).toBe('one of E\u00a0E\u00a0271 or CSE\u00a0369')
+  })
+
+  it('level tags', () => {
+    expect(levelTag(course('CSE 197'))).toBe('100-level')
+    expect(levelTag(course('CSE 311'))).toBe('300-level')
   })
 })

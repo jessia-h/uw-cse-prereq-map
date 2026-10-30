@@ -28,6 +28,11 @@ const pairs: [string, string, number, string][] = [
   [c.warningText, c.warningFill, TEXT, 'conflict text'],
   [c.warningBorder, c.background, UI, 'conflict border'],
   [c.badgeText, c.badgeFill, TEXT, 'audience badge'],
+  [c.edgeQuiet, c.background, UI, 'quiet edge (nothing selected) and pill border'],
+  [c.text, c.tagFill, TEXT, 'text on tags, chips, and the panel answer'],
+  [c.textMuted, c.tagFill, TEXT, 'level tag and grade tag text'],
+  [c.uwPurple, c.tagFill, TEXT, 'close buttons on tag fill'],
+  [c.nodeBorderExternal, c.background, UI, 'search box border'],
 ]
 
 describe('theme contrast (WCAG 2.1 AA)', () => {
@@ -38,11 +43,19 @@ describe('theme contrast (WCAG 2.1 AA)', () => {
   it('UW gold is too light for text on white', () => {
     expect(contrastRatio(c.uwGold, c.background)).toBeLessThan(UI)
   })
+
+  // Decorative: cards and chips are identified by their text, and cards on
+  // the selected path get the purple border. Never use it for a line.
+  it('the quiet card border is decoration only', () => {
+    expect(contrastRatio(c.cardBorderQuiet, c.background)).toBeLessThan(UI)
+  })
 })
 
 describe('cssVariables', () => {
   it('converts camelCase token names to kebab-case custom properties', () => {
     expect(cssVariables()['--color-uw-purple']).toBe(c.uwPurple)
     expect(cssVariables()['--color-node-fill-external']).toBe(c.nodeFillExternal)
+    expect(cssVariables()['--space-1']).toBe('4px')
+    expect(cssVariables()['--space-7']).toBe('48px')
   })
 })

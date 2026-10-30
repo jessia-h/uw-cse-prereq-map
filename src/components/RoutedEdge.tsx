@@ -5,8 +5,12 @@
 import { BaseEdge, getBezierPath, type Edge, type EdgeProps } from '@xyflow/react'
 import type { Point } from '../lib/layout.ts'
 import { colors } from '../theme.ts'
+import type { Look } from './nodes.tsx'
 
-export type RoutedFlowEdge = Edge<{ points: Point[]; label?: { text: string; x: number; y: number } }, 'routed'>
+export type RoutedFlowEdge = Edge<
+  { points: Point[]; label?: { text: string; x: number; y: number }; look: Look },
+  'routed'
+>
 
 const RADIUS = 8
 
@@ -47,14 +51,19 @@ export function RoutedEdge(props: EdgeProps<RoutedFlowEdge>) {
       path={path}
       style={props.style}
       markerEnd={props.markerEnd}
-      // Minimum grade, e.g. "≥ 2.0". Text stays full contrast even when the line fades.
+      // Minimum grade as a small tag, e.g. "≥ 2.0". Text stays >= 4.5:1 in every look.
       label={label?.text}
       labelX={label?.x}
       labelY={label?.y}
-      labelStyle={{ fill: colors.text, fontSize: 11, fontWeight: 700 }}
+      labelStyle={{
+        fill: props.data?.look === 'path' ? colors.text : colors.textMuted,
+        fontSize: 11,
+        fontWeight: 700,
+      }}
       labelShowBg
-      labelBgStyle={{ fill: colors.background }}
-      labelBgPadding={[3, 1]}
+      labelBgStyle={{ fill: colors.tagFill, stroke: props.data?.look === 'path' ? colors.uwPurple : colors.edgeQuiet, strokeWidth: 1 }}
+      labelBgPadding={[5, 2]}
+      labelBgBorderRadius={8}
     />
   )
 }

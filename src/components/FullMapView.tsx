@@ -1,6 +1,7 @@
-// The main screen: every course, laid out once. Selecting a course highlights
-// it, its ancestors, and its direct descendants (the same set the Focus view
-// shows) and fades the rest. Positions never move; only styles change.
+// The main screen: every course, laid out once. With nothing selected, every
+// line is quiet grey. Selecting a course highlights it, its ancestors, and its
+// direct descendants (the same set the Focus view shows) in purple and fades
+// the rest. Positions never move; only styles change.
 //
 // The detail panel (`panel`) overlays the right side of the map on wide
 // screens, and the selected course is centered in the area left of it. On
@@ -9,7 +10,7 @@
 import '@xyflow/react/dist/style.css'
 import { Controls, ReactFlow } from '@xyflow/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { courseData } from '../data/courses.ts'
+import { shownData } from '../data/courses.ts'
 import { useMediaQuery, WIDE } from '../hooks/useMediaQuery.ts'
 import { buildFocusGraph, buildFullGraph, INTRO_SEQUENCE, introLinkIds } from '../lib/focusGraph.ts'
 import { layoutFocusGraph, type Layout } from '../lib/layout.ts'
@@ -24,7 +25,7 @@ const edgeTypes = { routed: RoutedEdge }
 
 // Built and laid out once, including recommendations, so toggling them
 // on or off only shows or hides lines and never moves a course.
-const fullModel = buildFullGraph(courseData)
+const fullModel = buildFullGraph(shownData)
 const introLinks = introLinkIds(fullModel)
 
 const INTRO_NOTE = 'Intro sequence: choose your starting point with Guided Self-Placement'
@@ -50,7 +51,7 @@ export function FullMapView(props: {
 
   const highlight = useMemo(() => {
     if (!selectedId) return null
-    const focus = buildFocusGraph(selectedId, courseData, prereqGraph, { showRecommended })
+    const focus = buildFocusGraph(selectedId, shownData, prereqGraph, { showRecommended })
     return new Set([...focus.nodes.map((n) => n.id), ...focus.edges.map((e) => e.id)])
   }, [selectedId, showRecommended])
 
@@ -59,6 +60,7 @@ export function FullMapView(props: {
     const { nodes, edges } = toFlow(fullModel, layout, {
       onSelect,
       selected: selectedId,
+      quiet: !selectedId,
       highlight,
       hideRecommended: !showRecommended,
       alwaysShow: introLinks,

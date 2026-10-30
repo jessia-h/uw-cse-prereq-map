@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { courseData } from '../data/courses.ts'
+import { shownData } from '../data/courses.ts'
 import { searchCourses } from '../lib/search.ts'
 
-const allCourses = [...courseData.courses, ...courseData.external]
+// No retired courses (see lib/shown.ts).
+const allCourses = [...shownData.courses, ...shownData.external]
 
 /** Search by number or title. Enter picks the first result. */
 export function SearchBox({ onSelect }: { onSelect: (id: string) => void }) {
@@ -24,6 +25,10 @@ export function SearchBox({ onSelect }: { onSelect: (id: string) => void }) {
       }}
     >
       <label htmlFor="course-search">Search courses</label>
+      <svg className="search__icon" width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="8.5" cy="8.5" r="6" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M 13 13 L 18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
       <input
         id="course-search"
         type="search"

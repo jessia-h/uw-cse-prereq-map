@@ -1,22 +1,29 @@
 // Custom React Flow nodes. Each course node is a real <button>, so it is
-// focusable and announced by its accessible name. Junction and "other" nodes
-// are plain text; the course buttons' names already say "one of".
+// focusable and announced by its accessible name. Junction ("1 of 2" pills)
+// and "other" nodes are plain text; the course buttons' names already say "one of".
 
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
+
+/**
+ * quiet: nothing is selected. path: on the selected course's path (or the
+ * focus view). faded: something else is selected.
+ */
+export type Look = 'quiet' | 'path' | 'faded'
 
 export type CourseNodeData = {
   courseId: string
   title?: string
   selected: boolean
-  faded: boolean
-  external: boolean
-  retired: boolean
-  coreq?: string // "Take with one of …"; co-requisites are text, not arrows
+  look: Look
+  external: boolean // outside the prototype: non-CSE, or CSE not encoded yet
+  nonCse: boolean
+  tag: string // "300-level", "Non-CSE", "Not in prototype yet"
+  extra?: string // "Take with one of …" (co-requisites are text, not arrows), or a retired-prerequisite note
   label: string // accessible name
   onSelect: (courseId: string) => void
 }
-export type JunctionNodeData = { label: string; recommended: boolean; faded: boolean }
-export type OtherNodeData = { text: string; recommended: boolean; faded: boolean }
+export type JunctionNodeData = { label: string; recommended: boolean; look: Look }
+export type OtherNodeData = { text: string; recommended: boolean; look: Look }
 
 export type CourseFlowNode = Node<CourseNodeData, 'course'>
 export type JunctionFlowNode = Node<JunctionNodeData, 'junction'>
@@ -36,7 +43,7 @@ function Handles() {
 const cls = (...names: (string | false)[]) => names.filter(Boolean).join(' ')
 
 export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
-  const tag = data.retired ? 'retired' : data.external ? 'outside this map' : null
+  const tag = <span className="course-node__tag">{data.tag}</span>
   return (
     <>
       <Handles />
@@ -45,9 +52,9 @@ export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
         className={cls(
           'course-node',
           'nopan', // React Flow: pressing a course doesn't start panning the map
+          `course-node--${data.look}`,
           data.selected && 'course-node--selected',
-          (data.external || data.retired) && 'course-node--external',
-          data.faded && 'course-node--faded',
+          data.nonCse && 'course-node--non-cse',
         )}
         aria-label={data.label}
         data-course-id={data.courseId} // lets the detail panel return focus here
@@ -57,10 +64,13 @@ export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
         style={{ pointerEvents: 'auto' }}
         onClick={() => data.onSelect(data.courseId)}
       >
-        <span className="course-node__id">{data.courseId}</span>
+        <span className="course-node__head">
+          <span className="course-node__id">{data.courseId}</span>
+          {!data.external && tag}
+        </span>
         {data.title && <span className="course-node__title">{data.title}</span>}
-        {tag && <span className="course-node__tag">{tag}</span>}
-        {data.coreq && <span className="course-node__coreq">{data.coreq}</span>}
+        {data.external && tag}
+        {data.extra && <span className="course-node__extra">{data.extra}</span>}
       </button>
     </>
   )
@@ -70,13 +80,7 @@ export function JunctionNode({ data }: NodeProps<JunctionFlowNode>) {
   return (
     <>
       <Handles />
-      <div
-        className={cls(
-          'junction-node',
-          data.recommended && 'junction-node--recommended',
-          data.faded && 'junction-node--faded',
-        )}
-      >
+      <div className={cls('junction-node', `junction-node--${data.look}`, data.recommended && 'junction-node--recommended')}>
         {data.label}
       </div>
     </>
@@ -87,7 +91,7 @@ export function OtherNode({ data }: NodeProps<OtherFlowNode>) {
   return (
     <>
       <Handles />
-      <div className={cls('other-node', data.recommended && 'other-node--recommended', data.faded && 'other-node--faded')}>
+      <div className={cls('other-node', `other-node--${data.look}`, data.recommended && 'other-node--recommended')}>
         {data.text}
       </div>
     </>

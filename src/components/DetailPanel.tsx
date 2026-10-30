@@ -1,21 +1,26 @@
 // Details for the selected course. A labelled region whose heading receives
 // focus when it opens; App handles Escape and returning focus on close.
+// It opens with a one-sentence answer, then the details.
 
 import type { RefObject } from 'react'
-import { courseData } from '../data/courses.ts'
+import { shownData } from '../data/courses.ts'
 import {
   AUDIENCE_LABEL,
   NO_UNLOCKS,
+  RETIRED_PREREQ_NOTE,
+  answerSentence,
   catalogUrl,
   coreqText,
   formatDate,
   isExternal,
+  isNonCse,
+  keepCourseIdsTogether,
   reqItems,
   type AnyCourse,
 } from '../lib/describe.ts'
 import { prereqGraph } from './flow.ts'
 
-const byId = new Map<string, AnyCourse>([...courseData.courses, ...courseData.external].map((c) => [c.id, c]))
+const byId = new Map<string, AnyCourse>([...shownData.courses, ...shownData.external].map((c) => [c.id, c]))
 
 /** One requirement as a sentence, or a list when it has several parts. */
 function ReqList({ items, lead }: { items: string[]; lead?: string }) {
@@ -56,10 +61,15 @@ export function DetailPanel(props: {
       </div>
 
       {external ? (
-        <p className="detail-panel__meta">
-          {course.status === 'retired' ? 'Retired course. ' : ''}Not part of this map yet.
+        <p className="detail-panel__answer">
+          {isNonCse(course)
+            ? 'Non-CSE course. This map doesn’t list its prerequisites.'
+            : 'Not in prototype yet. This map doesn’t list its prerequisites.'}
         </p>
       ) : (
+        <p className="detail-panel__answer">{keepCourseIdsTogether(answerSentence(course))}</p>
+      )}
+      {!external && (
         <p className="detail-panel__meta">
           {course.credits} credits <span className="badge">Audience: {AUDIENCE_LABEL[course.audience]}</span>
         </p>
@@ -69,7 +79,13 @@ export function DetailPanel(props: {
       {!external && (
         <>
           <h3>Prerequisites</h3>
-          {course.prereq ? <ReqList items={reqItems(course.prereq)} lead="All of these:" /> : <p>None listed in the catalog.</p>}
+          {course.prereq ? (
+            <ReqList items={reqItems(course.prereq)} lead="All of these:" />
+          ) : RETIRED_PREREQ_NOTE[course.id] ? (
+            <p>{RETIRED_PREREQ_NOTE[course.id].card}. See the official catalog wording below.</p>
+          ) : (
+            <p>None listed in the catalog.</p>
+          )}
 
           {course.coreq && (
             <>

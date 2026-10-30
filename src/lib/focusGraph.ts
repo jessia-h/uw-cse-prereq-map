@@ -8,8 +8,8 @@
 // Because the focus graph for a course is a subset of the full graph, the
 // full map highlights a selection by lighting up the focus graph's ids.
 //
-// An OR group with 2+ options becomes a "one of N" junction node: each option
-// joins it with a dashed edge, and the junction joins the course with the
+// An OR group with 2+ options becomes a junction drawn as a small "1 of N"
+// pill: each option joins it with a dashed edge, and the junction joins the course with the
 // edge style of its context (solid for prereq, dotted for recommended).
 
 import type { CourseData, Req } from '../data/schema.ts'
@@ -107,7 +107,7 @@ function createBuilder(data: CourseData) {
     nodes.set(id, {
       id,
       kind: 'junction',
-      label: `${key === 'any' ? 'one of' : 'all of'} ${children.length}`,
+      label: `${key === 'any' ? '1 of' : 'all of'} ${children.length}`,
       recommended: ctx.recommended,
     })
     addEdge(id, target, edgeKind)

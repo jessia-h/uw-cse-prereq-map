@@ -3,20 +3,24 @@
 // unlock. Used by both the full map and the focus view.
 
 import ELK, { type ElkExtendedEdge, type ElkNode } from 'elkjs/lib/elk.bundled.js'
-import { isExternal } from './describe.ts'
+import { isExternal, RETIRED_PREREQ_NOTE } from './describe.ts'
 import type { FocusGraph, FocusNode } from './focusGraph.ts'
+
+export const CARD_WIDTH = 184
 
 /** Node box sizes in px. Components render at exactly these sizes. */
 export function nodeSize(node: FocusNode): { width: number; height: number } {
-  if (node.kind === 'junction') return { width: 72, height: 28 }
-  if (node.kind === 'other') return { width: 176, height: 44 }
-  // Room for a "Take with …" line under the title.
-  const hasCoreq = !isExternal(node.course) && node.course.coreq
-  return { width: 176, height: hasCoreq ? 100 : 64 }
+  if (node.kind === 'junction') return { width: 48, height: 20 } // the "1 of 2" pill
+  if (node.kind === 'other') return { width: CARD_WIDTH, height: 44 }
+  // Every card is the same size, except those with an extra line under the
+  // title: "Take with …" (CSE 197) or a retired-prerequisite note (CSE 143).
+  const course = node.course
+  const extraLine = !isExternal(course) && (course.coreq || RETIRED_PREREQ_NOTE[course.id])
+  return { width: CARD_WIDTH, height: extraLine ? 104 : 72 }
 }
 
-/** Size of a minimum-grade label such as "≥ 2.0". */
-export const LABEL_SIZE = { width: 36, height: 16 }
+/** Size of a minimum-grade tag such as "≥ 2.0". */
+export const LABEL_SIZE = { width: 40, height: 18 }
 
 export const minGradeLabel = (minGrade: number) => `≥ ${minGrade.toFixed(1)}`
 

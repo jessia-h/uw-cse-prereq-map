@@ -4,12 +4,13 @@
 
 import type { MouseEvent, ReactNode, RefObject } from 'react'
 import type { Req } from '../data/schema.ts'
-import { courseData } from '../data/courses.ts'
+import { shownData } from '../data/courses.ts'
 import { toParam } from '../hooks/useUrlState.ts'
-import { AUDIENCE_LABEL, isExternal, NO_UNLOCKS, type AnyCourse } from '../lib/describe.ts'
+import { AUDIENCE_LABEL, isExternal, isNonCse, NO_UNLOCKS, RETIRED_PREREQ_NOTE, type AnyCourse } from '../lib/describe.ts'
 import { prereqGraph } from './flow.ts'
 
-const allCourses = [...courseData.courses, ...courseData.external].sort((a, b) =>
+// No retired courses (see lib/shown.ts).
+const allCourses = [...shownData.courses, ...shownData.external].sort((a, b) =>
   a.id.localeCompare(b.id, 'en', { numeric: true }),
 )
 const byId = new Map<string, AnyCourse>(allCourses.map((c) => [c.id, c]))
@@ -23,8 +24,7 @@ function CourseLink({ id, onSelect }: { id: string; onSelect: (id: string) => vo
     onSelect(id)
   }
   let text = course?.title ? `${id}, ${course.title}` : id
-  if (course?.status === 'retired') text += ' (retired)'
-  else if (course && isExternal(course)) text += ' (outside this prototype)'
+  if (course && isExternal(course)) text += ' (outside this prototype)'
   return (
     <a href={`?course=${toParam(id)}&view=list`} onClick={onClick}>
       {text}
@@ -108,14 +108,22 @@ export function ListView(props: {
       </h2>
       <p>
         {external
-          ? `${course.status === 'retired' ? 'Retired course. ' : ''}Not part of this prototype.`
+          ? `${isNonCse(course) ? 'Non-CSE course' : 'Not in prototype yet'}. Not part of this prototype.`
           : `${course.credits} credits. Audience: ${AUDIENCE_LABEL[course.audience]}.`}
       </p>
 
       {!external && (
         <>
           <h3>Prerequisites</h3>
-          {course.prereq ? <ReqTree req={course.prereq} onSelect={onSelect} /> : <p>None listed in the catalog.</p>}
+          {course.prereq ? (
+            <ReqTree req={course.prereq} onSelect={onSelect} />
+          ) : RETIRED_PREREQ_NOTE[course.id] ? (
+            <p>
+              {RETIRED_PREREQ_NOTE[course.id].card}. {RETIRED_PREREQ_NOTE[course.id].advice}
+            </p>
+          ) : (
+            <p>None listed in the catalog.</p>
+          )}
 
           {course.coreq && (
             <>
