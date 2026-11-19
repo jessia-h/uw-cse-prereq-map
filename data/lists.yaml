@@ -1,0 +1,44 @@
+# Course lists that programs refer to, and per-course exceptions that apply in
+# every program. See docs/MAINTAINING.md for the yearly update.
+sources:
+  - url: "https://www.cs.washington.edu/academics/undergraduate/degree-requirements/courses/"
+    retrieved: "2026-10-22"
+  - url: "https://www.cs.washington.edu/academics/undergraduate/non-major-options/"
+    retrieved: "2026-10-22"
+verified: { date: "2026-10-22", by: peer-adviser, method: catalog }
+lists:
+  - id: core
+    name: CSE Core
+    courses: [CSE 331, CSE 333, CSE 340, CSE 341, CSE 344, CSE 369, CSE 371, STAT 391, CSE 401, CSE 402, CSE 403, CSE 421, CSE 422, CSE 426, CSE 427, CSE 431, CSE 434, CSE 438, CSE 440, CSE 442, CSE 443, CSE 444, CSE 446, CSE 447, CSE 451, CSE 452, CSE 453, CSE 455, CSE 457, CSE 458, CSE 461, CSE 462, CSE 469, CSE 470, CSE 473, CSE 474, CSE 478, CSE 484, CSE 486, CSE 493]
+  - id: ce-systems
+    name: CE Systems Electives
+    courses: [CSE 401, CSE 402, CSE 403, CSE 444, CSE 451, CSE 452, CSE 453, CSE 461, CSE 474, CSE 469, CSE 470, CSE 478, CSE 484, E E 476, E E 477]
+    conflicts:
+      - "The Allen School Course Lists page also names CSE 466, 467 and 471 as CE Systems Electives; they are not in the current UW Course Catalog (retrieved 2026-10-22), so they are left out."
+  - id: electives
+    name: CSE Electives
+    rule: "Any course on the CSE Core list; any graded 400-level CSE course whose audience is not nonmajor; CSE 480."
+    includes: [core]
+    # Graded 400-level courses not on the Core list go here as they are added
+    # (a test fails if one is missing).
+    courses: [CSE 480]
+  - id: capstone
+    name: Capstone
+    status: pending
+    courses: []
+  - id: ds-electives
+    name: Data Science electives
+    status: pending
+    courses: []
+exceptions:
+  - course: CSE 373
+    role: none
+    label: "Does not count (majors must take CSE 332)"
+  - course: CSE 374
+    role: neutral
+    label: Free elective only
+  - course: CSE 414
+    role: neutral
+    label: Check with adviser
+    badge: Check with adviser
+    note: "May substitute for a 300-level Core course if taken before admission to the Allen School."

@@ -73,7 +73,19 @@ function HowToRead() {
           <li>“Take with …” on a card: a co-requisite, written on the card instead of drawn as a line.</li>
           <li>Show recommended courses: adds dotted lines for courses the catalog recommends but doesn’t require.</li>
           <li>Retired courses aren’t shown. Each course’s “Official catalog wording” still quotes the catalog exactly.</li>
+          <li>Columns are grouped by level: 100-, 200- (non-CSE), 300- and 400-level.</li>
+          <li>
+            “Needs CSE 123 or 143” on a card: the lines from CSE 123 and 143 are hidden to reduce clutter. Select the
+            course to see them, or turn off “Simplify intro-course lines” in Filters.
+          </li>
         </ul>
+        <h3>Show my degree</h3>
+        <p>
+          Pick a degree to see each course’s role in it: a stripe on the card’s left edge and a badge saying Required,
+          the group it counts toward (such as “1 of 4 required”), Core, or Elective. Courses with no stripe aren’t used
+          in that degree’s CSE requirements. In “All”, small CS, DS and CE tags mark the degrees that require a course.
+          Degree roles are a guide; confirm your requirements in MyPlan’s degree audit.
+        </p>
         <h3>Selecting a course</h3>
         <p>
           The course turns purple, along with everything it requires and the courses it directly unlocks. Everything
@@ -93,7 +105,12 @@ function HowToRead() {
   )
 }
 
-export function Legend() {
+/** A card edge with the role's stripe. */
+function RoleSample({ tier }: { tier?: string }) {
+  return <span className={`legend__role${tier ? ` legend__role--${tier}` : ''}`} aria-hidden="true" />
+}
+
+export function Legend({ degree }: { degree?: string | null }) {
   return (
     <section className="legend" aria-labelledby="legend-heading">
       <h2 id="legend-heading" className="visually-hidden">
@@ -116,6 +133,22 @@ export function Legend() {
           <span className="legend__card" aria-hidden="true" /> Non-CSE course
         </li>
       </ul>
+      {degree && (
+        <ul className="legend__items legend__roles" aria-label="Degree roles">
+          <li>
+            <RoleSample tier="required" /> Required
+          </li>
+          <li>
+            <RoleSample tier="choose" /> Choose from a list
+          </li>
+          <li>
+            <RoleSample tier="elective" /> Core or Elective
+          </li>
+          <li>
+            <RoleSample /> No stripe: not used
+          </li>
+        </ul>
+      )}
       <p className="legend__hint">Select a course to see what it needs and what it unlocks.</p>
       <HowToRead />
     </section>

@@ -67,6 +67,12 @@ export const reqSchema: z.ZodType<Req> = z.unknown().transform((value, ctx) => {
 
 const source = z.strictObject({ url: z.url(), retrieved: isoDate })
 
+const verified = z.strictObject({
+  date: isoDate,
+  by: z.string().min(1),
+  method: z.enum(['catalog', 'adviser-confirmed']),
+})
+
 export const courseSchema = z.strictObject({
   id: courseId,
   title: z.string().min(1),
@@ -80,11 +86,7 @@ export const courseSchema = z.strictObject({
   audience: z.enum(['majors', 'open', 'nonmajor', 'unknown']),
   status: z.enum(['active', 'retired']),
   sources: z.array(source).min(1, 'must list at least one source'),
-  verified: z.strictObject({
-    date: isoDate,
-    by: z.string().min(1),
-    method: z.enum(['catalog', 'adviser-confirmed']),
-  }),
+  verified,
   conflicts: z.array(z.string().min(1)).optional(),
   notes: z.string().optional(),
 })
@@ -100,6 +102,81 @@ export const externalCourseSchema = z.strictObject({
 })
 
 export const externalFileSchema = z.array(externalCourseSchema)
+
+// Degree programs (data/programs/*.yaml) and course lists (data/lists.yaml).
+// A program is a list of requirement groups; each group names its courses
+// directly or points at a list. See docs/MAINTAINING.md for how to update them.
+
+const slug = z.string().regex(/^[a-z0-9-]+$/, 'must be lowercase letters, digits, and dashes')
+
+// One entry in a group: a course, or a choice between courses ("CSE 123 or CSE 143").
+const groupEntry = z.union([courseId, z.strictObject({ any: z.array(courseId).min(2, 'a choice needs at least two courses') })])
+
+export const programGroupSchema = z
+  .strictObject({
+    id: slug,
+    // required: must take. choose: counts toward a specific group.
+    // elective: Core or elective credit.
+    role: z.enum(['required', 'choose', 'elective']),
+    badge: z.string().min(1), // text on the card, e.g. "1 of 4 required"
+    pick: z.number().int().positive().optional(),
+    minGrade: z.number().min(0).max(4).optional(),
+    note: z.string().min(1).optional(), // shown in the panel, e.g. "at least four of them 400-level"
+    courses: z.array(groupEntry).optional(),
+    list: slug.optional(), // a list id from data/lists.yaml
+    exclude: z.array(courseId).optional(), // members of `list` that don't count here
+  })
+  .refine((g) => (g.courses === undefined) !== (g.list === undefined), {
+    message: 'give exactly one of `courses` or `list`',
+  })
+
+export const programSchema = z.strictObject({
+  id: slug,
+  name: z.string().min(1), // "Computer Engineering"
+  short: z.string().min(1), // "CE", the tag on cards in "All" mode
+  extends: slug.optional(), // another program whose groups this one includes first
+  sources: z.array(source).min(1, 'must list at least one source'),
+  verified,
+  groups: z.array(programGroupSchema),
+})
+
+export const courseListSchema = z.strictObject({
+  id: slug,
+  name: z.string().min(1),
+  status: z.enum(['current', 'pending']).default('current'), // pending: not available yet, kept empty
+  rule: z.string().min(1).optional(), // the list's definition in words, when it is defined by a rule
+  includes: z.array(slug).optional(), // every course of these lists also belongs to this one
+  courses: z.array(courseId),
+  conflicts: z.array(z.string().min(1)).optional(),
+})
+
+// Per-course exceptions that apply in every program (from the Non-Major Options page).
+export const exceptionSchema = z.strictObject({
+  course: courseId,
+  role: z.enum(['neutral', 'none']), // neutral: no fade; none: doesn't count
+  label: z.string().min(1), // words in the panel and accessible name
+  badge: z.string().min(1).optional(), // text on the card, if any
+  note: z.string().min(1).optional(),
+})
+
+export const listsFileSchema = z.strictObject({
+  sources: z.array(source).min(1, 'must list at least one source'),
+  verified,
+  lists: z.array(courseListSchema),
+  exceptions: z.array(exceptionSchema).default([]),
+})
+
+export type ProgramGroup = z.infer<typeof programGroupSchema>
+export type Program = z.infer<typeof programSchema>
+export type CourseList = z.infer<typeof courseListSchema>
+export type CourseException = z.infer<typeof exceptionSchema>
+
+/** Shape of src/generated/programs.json. */
+export interface ProgramData {
+  programs: Program[]
+  lists: CourseList[]
+  exceptions: CourseException[]
+}
 
 export type Course = z.infer<typeof courseSchema>
 export type ExternalCourse = z.infer<typeof externalCourseSchema>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Embed test: CSE Prerequisite Map in a long page</title>
+    <!--
+      A stand-in for the WordPress page the map will live on: long text above
+      and below, a skip link over the map, the map in a titled iframe, and a
+      link to the text version after it.
+
+      To use it:
+        npm run build
+        python3 -m http.server 8000      (from the repository root)
+        open http://localhost:8000/docs/embed-test.html
+
+      Check:
+      - Scrolling with the mouse wheel over the map scrolls the page; the map
+        doesn't zoom. Ctrl + scroll (or a trackpad pinch, or the +/− buttons) zooms.
+      - Tab moves from "Skip the interactive map" into the map, through it,
+        and out to "View the course list as text"; Shift+Tab goes back the
+        same way. Nothing traps focus.
+      - "Skip the interactive map" jumps past the map.
+    -->
+    <style>
+      body {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 1rem;
+        font-family: Georgia, serif;
+        line-height: 1.6;
+        color: #1a1a1a;
+        background: #ffffff;
+      }
+      .filler {
+        max-width: 42rem;
+      }
+      .skip {
+        display: inline-block;
+        margin: 1rem 0 0.5rem;
+      }
+      iframe {
+        display: block;
+        width: 100%;
+        height: 900px;
+        border: 1px solid #6b6b6b;
+      }
+      a {
+        color: #4b2e83;
+      }
+      :focus-visible {
+        outline: 3px solid #0050c8;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="top-of-page">Undergraduate advising: course planning</h1>
+    <div class="filler">
+      <p>
+        This test page stands in for the Allen School WordPress page where the prerequisite map will be embedded. It
+        has enough text above and below the map that the page itself scrolls, so you can check that scrolling over
+        the map moves the page instead of zooming the map.
+      </p>
+      <p>
+        Peer Advisers hold drop-in hours during the quarter. Bring your questions about course planning, registration,
+        and how prerequisites fit together. The map below is an advising aid; always confirm your plan in MyPlan.
+      </p>
+      <p>
+        Students often ask which courses open up after the introductory sequence, how the 300-level courses connect,
+        and which 400-level courses need which foundations. The map answers these visually; the text version answers
+        the same questions as lists.
+      </p>
+      <p>
+        Planning ahead matters most for courses with long chains of prerequisites. Start from the course you want and
+        look left to see what comes before it, or start from a course you have taken and look right to see what it
+        unlocks.
+      </p>
+      <p>
+        If anything on the map disagrees with the UW Course Catalog, the catalog is correct. Please tell the Peer
+        Advisers so the map can be fixed.
+      </p>
+    </div>
+
+    <h2>Prerequisite map</h2>
+    <a class="skip" href="#after-map">Skip the interactive map</a>
+    <iframe src="../dist/index.html" title="UW Allen School CSE Prerequisite Map (interactive)" loading="lazy"></iframe>
+    <p id="after-map" tabindex="-1">
+      <a href="../dist/index.html?view=list">View the course list as text</a>
+    </p>
+
+    <div class="filler">
+      <h2>More about planning</h2>
+      <p>
+        Most students plan one or two quarters ahead. Check when courses are offered in the UW Time Schedule; not every
+        course is offered every quarter.
+      </p>
+      <p>
+        Some courses list a minimum grade in a prerequisite. The map shows these as “≥ 2.0” on the line between the
+        courses, and the text version says “minimum grade 2.0”.
+      </p>
+      <p>
+        Co-requisites are courses you take at the same time. The map lists them on the course instead of drawing a
+        line.
+      </p>
+      <p>
+        Courses that are retired are not shown, but they still count if you have already taken them. An adviser can
+        help you work out what they satisfy.
+      </p>
+      <p>
+        Questions about the degree requirements themselves go to an Allen School adviser, and the MyPlan degree audit
+        is the authority on what you have completed.
+      </p>
+      <p><a href="#top-of-page" id="last-link">Back to the top of the page</a></p>
+    </div>
+  </body>
+</html>

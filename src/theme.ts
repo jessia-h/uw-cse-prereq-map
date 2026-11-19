@@ -56,6 +56,18 @@ export const colors = {
   // Tags on cards and lines ("300-level", "≥ 2.0"), and the "1 of 2" pills
   tagFill: '#f3f0f8', // text 15.44, muted text 6.21, purple 9.23 on it
 
+  // Degree lens: a stripe on the card's left edge plus a badge. Badge text
+  // always says the role, so color never carries it alone. Checked for
+  // deuteranopia and protanopia (docs/degree-lens-proposal.md, A4): the three
+  // stay distinct; the blue is close to UW purple for those users, so roles
+  // use the stripe and badge, and selection uses fill and border.
+  roleRequired: '#005a9c', // 7.14:1; 6.18:1 on its tint
+  roleRequiredTint: '#e6f0f8',
+  roleChoose: '#b04a00', // 5.49:1; 4.82:1 on its tint
+  roleChooseTint: '#fbeee4',
+  roleElective: '#00756a', // 5.60:1; 4.85:1 on its tint
+  roleElectiveTint: '#e3f2ef',
+
   // Badges (audience) — the badge's text label carries the meaning
   badgeFill: '#e8e3f3',
   badgeText: '#4b2e83', // 8.28:1 on badgeFill

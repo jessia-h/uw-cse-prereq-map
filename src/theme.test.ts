@@ -33,6 +33,13 @@ const pairs: [string, string, number, string][] = [
   [c.textMuted, c.tagFill, TEXT, 'level tag and grade tag text'],
   [c.uwPurple, c.tagFill, TEXT, 'close buttons on tag fill'],
   [c.nodeBorderExternal, c.background, UI, 'search box border'],
+  [c.roleRequired, c.background, UI, 'Required stripe'],
+  [c.roleChoose, c.background, UI, 'Choose-from-a-list stripe'],
+  [c.roleElective, c.background, UI, 'Core/Elective stripe'],
+  [c.roleRequired, c.roleRequiredTint, TEXT, 'Required badge'],
+  [c.roleChoose, c.roleChooseTint, TEXT, 'Choose-from-a-list badge'],
+  [c.roleElective, c.roleElectiveTint, TEXT, 'Core/Elective badge'],
+  [c.text, c.surface, TEXT, 'level heading on a tinted band'],
 ]
 
 describe('theme contrast (WCAG 2.1 AA)', () => {

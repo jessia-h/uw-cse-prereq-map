@@ -1,0 +1,41 @@
+# Computer Science (B.S.). CSE requirements only; see docs/MAINTAINING.md for
+# how to update this file each year. Rules the map doesn't check (credit
+# totals, how many 400-level) are kept as `note` text and shown in the panel.
+id: cs
+name: Computer Science
+short: CS
+sources:
+  - url: "https://www.washington.edu/students/gencat/program/S/ComputerScience-210.html"
+    retrieved: "2026-10-22"
+verified: { date: "2026-10-22", by: peer-adviser, method: catalog }
+groups:
+  - id: cs-required
+    role: required
+    badge: Required
+    minGrade: 2.0
+    courses:
+      - any: [CSE 123, CSE 143]
+      - CSE 311
+      - CSE 312
+      - CSE 331
+      - CSE 332
+      - CSE 351
+  - id: cs-core
+    role: elective
+    badge: Core
+    pick: 6
+    list: core
+    exclude: [CSE 331] # required for CS, so it doesn't count as Core
+    note: "Six courses from the CSE Core list, at least four of them 400-level; plus one more Core course or one Capstone course."
+  - id: cs-capstone
+    role: choose
+    badge: Capstone
+    pick: 1
+    list: capstone
+    note: "One more Core course or one Capstone course."
+  - id: cs-electives
+    role: elective
+    badge: Elective
+    list: electives
+    exclude: [CSE 331]
+    note: "Electives from the CSE Electives list to reach 33 credits."

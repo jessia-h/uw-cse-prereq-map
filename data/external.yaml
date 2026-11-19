@@ -8,7 +8,6 @@
   status: retired
   url: "https://www.cs.washington.edu/academics/undergraduate/non-major-options/"
   notes: "Last offered Summer 2022"
-- { id: CSE 163, status: active, url: "https://www.washington.edu/students/crscat/cse.html#cse163" }
 - id: CSE 303
   status: retired
   url: "https://www.washington.edu/students/crscat/cse.html"
@@ -21,6 +20,7 @@
 - { id: MATH 135, status: active, url: "https://www.washington.edu/students/crscat/math.html#math135" }
 - { id: MATH 136, status: active, url: "https://www.washington.edu/students/crscat/math.html#math136" }
 - { id: MATH 208, status: active, url: "https://www.washington.edu/students/crscat/math.html#math208" }
+- { id: SOC 225, status: active, url: "https://www.washington.edu/students/crscat/soc.html#soc225" }
 - { id: STAT 390, status: active, url: "https://www.washington.edu/students/crscat/stat.html#stat390" }
 - { id: STAT 391, status: active, url: "https://www.washington.edu/students/crscat/stat.html#stat391" }
 - { id: E E 205, status: active, url: "https://www.washington.edu/students/crscat/ee.html#ee205" }

@@ -1,0 +1,17 @@
+id: CSE 403
+title: Software Engineering
+credits: "4"
+prereq:
+  all:
+    - course: CSE 331
+    - course: CSE 332
+prereqText: "Prerequisite: CSE 331; CSE 332."
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

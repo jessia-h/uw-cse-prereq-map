@@ -1,0 +1,22 @@
+# Computer Science: Data Science. Everything in Computer Science (`extends`),
+# plus the groups below. The extra required courses also count toward Core
+# and Electives where they are on those lists.
+id: ds
+name: "Computer Science: Data Science"
+short: DS
+extends: cs
+sources:
+  - url: "https://www.washington.edu/students/gencat/program/S/ComputerScience-210.html"
+    retrieved: "2026-10-22"
+verified: { date: "2026-10-22", by: peer-adviser, method: catalog }
+groups:
+  - id: ds-required
+    role: required
+    badge: Required
+    courses: [CSE 421, CSE 442, CSE 444, CSE 446, SOC 225]
+  - id: ds-elective
+    role: choose
+    badge: Data Science requirement
+    pick: 1
+    list: ds-electives
+    note: "One course from the data science elective list (list not available yet)."

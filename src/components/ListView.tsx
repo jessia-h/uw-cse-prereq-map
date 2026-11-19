@@ -1,13 +1,39 @@
 // The text alternative to the graphs: the same information as nested lists
 // with real headings. Every course is a link that selects it. With nothing
-// selected, it lists every course alphabetically.
+// selected, it lists every course alphabetically; with a degree picked,
+// grouped by role. Roles are text after each link, like the map's badges,
+// and the filters hide courses here too.
 
 import type { MouseEvent, ReactNode, RefObject } from 'react'
 import type { Req } from '../data/schema.ts'
 import { shownData } from '../data/courses.ts'
 import { toParam } from '../hooks/useUrlState.ts'
 import { AUDIENCE_LABEL, externalLabel, isExternal, NO_UNLOCKS, RETIRED_PREREQ_NOTE, type AnyCourse } from '../lib/describe.ts'
+import { degreeModel, type Degree } from '../data/programs.ts'
+import type { Tier } from '../lib/degree.ts'
 import { prereqGraph } from './flow.ts'
+import { InYourDegree } from './InYourDegree.tsx'
+import { cardLens, filteredOut, type Filters } from './lens.ts'
+
+/** The card's badge as text after a course link: "Core", "Required: CS, DS, CE", or nothing. */
+function roleText(id: string, degree: Degree | null): string | null {
+  const { role, programs } = cardLens(id, degree)
+  if (role) return role.badge ?? null
+  return programs.length ? `Required: ${programs.join(', ')}` : null
+}
+
+function Role({ id, degree }: { id: string; degree: Degree | null }) {
+  const text = roleText(id, degree)
+  return text ? <span className="list-view__role"> — {text}</span> : null
+}
+
+const GROUPS: { tier: Tier; heading: string }[] = [
+  { tier: 'required', heading: 'Required' },
+  { tier: 'choose', heading: 'Choose from a list' },
+  { tier: 'elective', heading: 'Core and electives' },
+  { tier: 'neutral', heading: 'Other courses' },
+  { tier: 'unused', heading: 'Not used in this degree' },
+]
 
 // No retired courses (see lib/shown.ts).
 const allCourses = [...shownData.courses, ...shownData.external].sort((a, b) =>
@@ -77,23 +103,48 @@ export function ListView(props: {
   onSelect: (id: string) => void
   onShowAll: () => void
   headingRef: RefObject<HTMLHeadingElement | null>
+  degree: Degree | null
+  filters: Filters
 }) {
-  const { course, onSelect, onShowAll, headingRef } = props
+  const { course, onSelect, onShowAll, headingRef, degree, filters } = props
 
   if (!course) {
+    const shown = allCourses.filter((c) => !filteredOut(c.id, filters, degree))
+    const hiddenCount = allCourses.length - shown.length
+    const items = (courses: AnyCourse[]) => (
+      <ul className="list-view__all">
+        {courses.map((c) => (
+          <li key={c.id}>
+            <CourseLink id={c.id} onSelect={onSelect} />
+            <Role id={c.id} degree={degree} />
+          </li>
+        ))}
+      </ul>
+    )
     return (
       <section className="list-view" id="course-list" aria-labelledby="list-heading">
         <h2 id="list-heading" ref={headingRef} tabIndex={-1}>
           All courses
         </h2>
         <p>Select a course to see its prerequisites, co-requisites, recommendations, and what it unlocks.</p>
-        <ul className="list-view__all">
-          {allCourses.map((c) => (
-            <li key={c.id}>
-              <CourseLink id={c.id} onSelect={onSelect} />
-            </li>
-          ))}
-        </ul>
+        {hiddenCount > 0 && (
+          <p className="list-view__hidden">
+            {hiddenCount} {hiddenCount === 1 ? 'course is' : 'courses are'} hidden by filters.
+          </p>
+        )}
+        {degree
+          ? GROUPS.map(({ tier, heading }) => {
+              const group = shown.filter((c) => degreeModel.roleOf(c.id, degree).tier === tier)
+              return (
+                group.length > 0 && (
+                  <section key={tier} aria-labelledby={`list-group-${tier}`}>
+                    <h3 id={`list-group-${tier}`}>{heading}</h3>
+                    {items(group)}
+                  </section>
+                )
+              )
+            })
+          : items(shown)}
       </section>
     )
   }
@@ -146,6 +197,8 @@ export function ListView(props: {
         </>
       )}
 
+      <InYourDegree courseId={course.id} degree={degree} />
+
       <h3>Unlocks</h3>
       {unlocks.length === 0 ? (
         <p>{NO_UNLOCKS}</p>
@@ -155,6 +208,7 @@ export function ListView(props: {
             <li key={u.id}>
               <CourseLink id={u.id} onSelect={onSelect} />
               {u.relation === 'alternative' && ' — one of several options'}
+              <Role id={u.id} degree={degree} />
             </li>
           ))}
         </ul>

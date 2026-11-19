@@ -1,0 +1,17 @@
+id: CSE 374
+title: Intermediate Programming Concepts and Tools
+credits: "3"
+prereq:
+  any:
+    - course: CSE 123
+    - course: CSE 143
+prereqText: "Prerequisite: CSE 123 or CSE 143."
+audience: nonmajor
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

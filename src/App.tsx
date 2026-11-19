@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { DetailPanel } from './components/DetailPanel.tsx'
 import { FocusView } from './components/FocusView.tsx'
@@ -8,7 +8,9 @@ import { ListView } from './components/ListView.tsx'
 import { SearchBox } from './components/SearchBox.tsx'
 import { shownData } from './data/courses.ts'
 import { useMediaQuery, WIDE } from './hooks/useMediaQuery.ts'
-import { toParam, useUrlState, type View } from './hooks/useUrlState.ts'
+import { restoreSavedOptions, toParam, useUrlState, type MapOptions, type View } from './hooks/useUrlState.ts'
+import { LensBar } from './components/LensBar.tsx'
+import { filteredOut } from './components/lens.ts'
 import type { AnyCourse } from './lib/describe.ts'
 
 const SUGGESTED = ['CSE 332', 'CSE 451', 'CSE 469']
@@ -77,13 +79,33 @@ function ViewSwitch({ view, onChange }: { view: View; onChange: (view: View) => 
   )
 }
 
+// Courses the List view lists (no retired courses).
+const listedIds = [...shownData.courses, ...shownData.external].map((c) => c.id)
+
 function App() {
-  const [{ course: param, view: urlView }, update] = useUrlState()
+  // Before the URL is first read: saved degree and filters, if the URL has none.
+  useState(restoreSavedOptions)
+  const [{ course: param, view: urlView, options }, update] = useUrlState()
   const wide = useMediaQuery(WIDE)
   // No view in the URL: the whole map on wide screens, the list on narrow ones.
   const view: View = urlView ?? (wide ? 'map' : 'list')
   const [showRecommended, setShowRecommended] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(() => !bannerDismissed())
+  const setOptions = useCallback(
+    (next: Partial<MapOptions>, how?: { replace?: boolean }) => update({ options: next }, how),
+    [update],
+  )
+  const { degree, levels, hideNonCse, hideUnused, simplify } = options
+  const filters = useMemo(() => ({ levels, hideNonCse, hideUnused }), [levels, hideNonCse, hideUnused])
+
+  // "Showing 24 of 46 courses": the map reports what it draws (it may show
+  // filtered courses on the selected path); the list counts directly.
+  const [mapCount, setMapCount] = useState<{ shown: number; total: number } | null>(null)
+  const onMapCount = useCallback((shown: number, total: number) => setMapCount({ shown, total }), [])
+  const listCount = useMemo(
+    () => ({ shown: listedIds.filter((id) => !filteredOut(id, filters, degree)).length, total: listedIds.length }),
+    [filters, degree],
+  )
 
   const focus = param ? lookup(param) : undefined
   const focusId = focus?.id
@@ -138,8 +160,9 @@ function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const inField = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
-      // The help dialog handles its own Escape; this is a backstop.
+      // The help dialog and the Filters dropdown handle their own Escape; this is a backstop.
       if (document.querySelector('dialog[open]')) return
+      if (e.key === 'Escape' && (e.target as HTMLElement).closest?.('details.filters[open]')) return
       if (e.key === 'Escape' && panelOpen && !inField) closePanel()
       if (e.key === '/' && !inField && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault()
@@ -156,7 +179,7 @@ function App() {
   }, [focus])
 
   const panel = panelOpen && focus && (
-    <DetailPanel course={focus} onClose={closePanel} onSelect={select} headingRef={headingRef} />
+    <DetailPanel course={focus} onClose={closePanel} onSelect={select} headingRef={headingRef} degree={degree} />
   )
 
   return (
@@ -221,9 +244,16 @@ function App() {
           </p>
         )}
 
+        <LensBar
+          options={options}
+          onChange={setOptions}
+          filters={view !== 'focus'}
+          count={view === 'list' ? listCount : mapCount}
+        />
+
         {(view === 'map' || (view === 'focus' && focus)) && (
           <div className="map-bar">
-            <Legend />
+            <Legend degree={degree} />
             <label className="map-bar__toggle">
               <input type="checkbox" checked={showRecommended} onChange={(e) => setShowRecommended(e.target.checked)} />{' '}
               Show recommended courses <LineSample dash="2 4" width={32} />
@@ -232,13 +262,22 @@ function App() {
         )}
 
         {view === 'map' && (
-          <FullMapView selectedId={focusId ?? null} showRecommended={showRecommended} onSelect={select} panel={panel} />
+          <FullMapView
+            selectedId={focusId ?? null}
+            showRecommended={showRecommended}
+            onSelect={select}
+            panel={panel}
+            degree={degree}
+            filters={filters}
+            simplify={simplify}
+            onCount={onMapCount}
+          />
         )}
 
         {view === 'focus' &&
           (focus ? (
             <div className={panel ? 'focus-with-panel' : undefined}>
-              <FocusView focusId={focus.id} showRecommended={showRecommended} onSelect={select} />
+              <FocusView focusId={focus.id} showRecommended={showRecommended} onSelect={select} degree={degree} />
               {panel}
             </div>
           ) : (
@@ -249,7 +288,14 @@ function App() {
           ))}
 
         {view === 'list' && (
-          <ListView course={focus} onSelect={select} onShowAll={() => update({ course: null })} headingRef={headingRef} />
+          <ListView
+            course={focus}
+            onSelect={select}
+            onShowAll={() => update({ course: null })}
+            headingRef={headingRef}
+            degree={degree}
+            filters={filters}
+          />
         )}
       </main>
 

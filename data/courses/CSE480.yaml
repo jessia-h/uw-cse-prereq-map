@@ -1,0 +1,15 @@
+id: CSE 480
+title: Computer Ethics Seminar
+credits: "1-3, max. 5"
+prereq: null
+prereqText: ""
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog
+notes: "Credit/no-credit only."

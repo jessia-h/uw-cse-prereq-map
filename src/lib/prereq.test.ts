@@ -229,24 +229,36 @@ describe('descendants (prereq only)', () => {
     expect(descendants('CSE 311', graph)).toEqual([
       rel('CSE 312', 'required', 1),
       rel('CSE 332', 'required', 1),
+      rel('CSE 344', 'required', 1), // "Prerequisite: CSE 311."
       rel('CSE 369', 'required', 1),
       rel('CSE 371', 'alternative', 2),
+      rel('CSE 401', 'required', 2), // via CSE 332: "CSE 332 and CSE 351"
+      rel('CSE 403', 'required', 2), // via CSE 332: "CSE 331; CSE 332"
       rel('CSE 421', 'required', 2),
+      rel('CSE 442', 'required', 2), // via CSE 332: "Prerequisite: CSE 332."
+      rel('CSE 444', 'required', 2), // via CSE 332: "CSE 332; and either CSE 344 or CSE 414")
       rel('CSE 446', 'required', 2), // via CSE 332 (required), even though via CSE 312 it is an option
       rel('CSE 447', 'required', 2),
       rel('CSE 451', 'required', 2),
       rel('CSE 461', 'alternative', 2),
       rel('CSE 469', 'alternative', 2),
+      rel('CSE 484', 'required', 2), // via CSE 332: "CSE 332; CSE 351."
     ])
   })
 
   it('CSE 123 is one option everywhere, so every descendant is an alternative', () => {
     const result = descendants('CSE 123', graph)
     expect(result.filter((r) => r.depth === 1).map((r) => r.id)).toEqual([
+      'CSE 154',
+      'CSE 163',
       'CSE 311',
       'CSE 331',
+      'CSE 340',
+      'CSE 341',
       'CSE 351',
       'CSE 373',
+      'CSE 374',
+      'CSE 391',
       'CSE 414',
       'CSE 469',
       'CSE 474',

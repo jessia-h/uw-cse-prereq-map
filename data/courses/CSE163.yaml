@@ -1,0 +1,20 @@
+id: CSE 163
+title: Intermediate Data Programming
+credits: "4"
+prereq:
+  any:
+    - course: CSE 122
+    - course: CSE 123
+    - course: CSE 142
+    - course: CSE 143
+    - course: CSE 160
+prereqText: "Prerequisite: either CSE 122, CSE 123, CSE 142, CSE 143, or CSE 160."
+audience: open
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

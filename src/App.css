@@ -262,6 +262,119 @@ main,
   cursor: pointer;
 }
 
+/* Degree lens and filters, above the key */
+.lens-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-4);
+}
+
+.lens-bar__degree {
+  flex: 1 1 560px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+/* Four degree names don't fit on a phone; let the segmented control shrink and wrap. */
+.lens-bar__degree .view-switch {
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.lens-bar__label {
+  font-size: var(--font-sm);
+  font-weight: 600;
+}
+
+.lens-bar__note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+}
+
+.filters {
+  position: relative;
+  flex: none;
+  font-size: var(--font-sm);
+}
+
+.filters summary {
+  padding: 6px var(--space-3);
+  font-weight: 600;
+  background: var(--color-tag-fill);
+  border: 1px solid var(--color-card-border-quiet);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.filters__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-background);
+  border: 1px solid var(--color-node-border-external);
+  border-radius: 8px;
+}
+
+/* Wide screens: a dropdown over the page, so opening it doesn't push the map down. */
+@media (min-width: 640px) {
+  .filters__body {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 20;
+    width: max-content;
+  }
+}
+
+.filters fieldset {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filters legend {
+  float: left;
+  margin-right: var(--space-2);
+  font-weight: 600;
+}
+
+.filters__status {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* "In your degree" (panel and List view) */
+.in-degree ul {
+  margin: var(--space-1) 0;
+  padding-left: var(--space-5);
+}
+
+.in-degree li {
+  margin: var(--space-1) 0;
+}
+
+.in-degree__note,
+.list-view__hidden,
+.list-view__role {
+  color: var(--color-text-muted);
+}
+
+.in-degree__note {
+  font-size: var(--font-sm);
+}
+
 /* Above the graph: the key, the hint, and the recommended toggle */
 .map-bar {
   display: flex;
@@ -332,6 +445,27 @@ main,
   background: var(--color-background);
 }
 
+.legend__role {
+  display: inline-block;
+  width: 18px;
+  height: 16px;
+  background: var(--color-background);
+  border: 1px solid var(--color-card-border-quiet);
+  border-radius: 3px;
+}
+
+.legend__role--required {
+  border-left: 6px solid var(--color-role-required);
+}
+
+.legend__role--choose {
+  border-left: 6px solid var(--color-role-choose);
+}
+
+.legend__role--elective {
+  border-left: 6px solid var(--color-role-elective);
+}
+
 .legend__card {
   display: inline-block;
   width: 24px;
@@ -396,7 +530,8 @@ main,
 
 /* Graph container */
 .graph-view {
-  height: max(420px, calc(100vh - 260px));
+  /* What's left of the window below the header and controls (~380px). */
+  height: max(420px, calc(100vh - 380px));
   border: 1px solid var(--color-card-border-quiet);
   border-radius: 12px;
   background: var(--color-background);
@@ -477,20 +612,100 @@ main,
   align-self: center;
 }
 
-.course-node__title,
-.course-node__extra {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  font-size: var(--font-xs);
-  line-height: 1.3;
+.course-node {
+  justify-content: flex-start;
 }
 
-.course-node__extra {
-  margin-top: 2px;
-  font-style: italic;
+/* One line; the full title is in the accessible name and the panel. */
+.course-node__title {
+  overflow: hidden;
+  font-size: var(--font-xs);
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Role badge and short tags: up to two lines (the accessible name has them all). */
+.course-node__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 4px;
+  max-height: 39px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.course-node__chip,
+.course-node__badge {
+  padding: 0 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
   color: var(--color-text-muted);
+  background: var(--color-tag-fill);
+  border-radius: 999px;
+}
+
+.course-node__chip--program {
+  color: var(--color-text);
+  border: 1px solid var(--color-edge-quiet);
+  line-height: 16px;
+}
+
+.course-node__badge--required {
+  color: var(--color-role-required);
+  background: var(--color-role-required-tint);
+}
+
+.course-node__badge--choose {
+  color: var(--color-role-choose);
+  background: var(--color-role-choose-tint);
+}
+
+.course-node__badge--elective {
+  color: var(--color-role-elective);
+  background: var(--color-role-elective-tint);
+}
+
+.course-node__badge--neutral {
+  border: 1px solid var(--color-edge-quiet);
+  line-height: 16px;
+}
+
+/* Degree role: a stripe on the left edge (a border, so forced colors keep it). */
+.course-node[class*='course-node--role-'] {
+  padding-left: 9px;
+  border-left: 6px solid var(--color-card-border-quiet);
+}
+
+.course-node.course-node--role-required {
+  border-left-color: var(--color-role-required);
+}
+
+.course-node.course-node--role-choose {
+  border-left-color: var(--color-role-choose);
+}
+
+.course-node.course-node--role-elective {
+  border-left-color: var(--color-role-elective);
+}
+
+.course-node.course-node--role-neutral {
+  border-left-width: 1px;
+  padding-left: 12px;
+}
+
+/* Not used in the selected degree: no stripe, muted text (still >= 4.5:1). */
+.course-node.course-node--role-unused {
+  padding-left: 12px;
+  color: var(--color-text-muted);
+  border-left-width: 1px;
+}
+
+/* Filtered out, but on the selected course's path. */
+.course-node.course-node--path-only {
+  border-style: dashed;
 }
 
 /* Outside the CSE department: grey card, grey outline, "Non-CSE" tag */
@@ -506,8 +721,7 @@ main,
 }
 
 /* Off the selected path: titles recede; text stays >= 4.5:1. */
-.course-node--faded .course-node__title,
-.course-node--faded .course-node__extra {
+.course-node--faded .course-node__title {
   color: var(--color-text-muted);
 }
 
@@ -525,8 +739,95 @@ main,
   box-shadow: inset 0 0 0 1px currentColor;
 }
 
-.course-node--selected .course-node__extra {
-  color: var(--color-text-on-purple);
+/* Level bands behind the full map's columns (decorative), and their headings,
+   pinned to the top of the map. */
+.level-band {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.level-band--tinted {
+  background: var(--color-surface);
+}
+
+.react-flow__node-band {
+  pointer-events: none !important;
+}
+
+.level-headings {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+  height: 30px;
+  pointer-events: none;
+}
+
+.level-headings__label {
+  position: absolute;
+  top: 6px;
+  overflow: hidden;
+  padding: 0 6px;
+  font-size: var(--font-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-text-muted);
+  background: var(--color-background);
+  border-radius: 4px;
+}
+
+/* "Use Ctrl + scroll to zoom", over the middle of the map for a moment. */
+.scroll-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 6;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--color-background);
+  background: var(--color-text);
+  border-radius: 8px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+@media (forced-colors: active) {
+  .scroll-hint {
+    border: 2px solid CanvasText;
+  }
+}
+
+/* The card and its full-title tip (WCAG 1.4.13: shows on hover and focus,
+   Escape hides it, and it stays while the pointer is over it). */
+.course-node-wrap {
+  width: 100%;
+  height: 100%;
+}
+
+.course-tip {
+  position: absolute;
+  top: calc(100% - 2px); /* touches the card, so the pointer can move onto it */
+  left: 0;
+  z-index: 1;
+  max-width: 280px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-sm);
+  line-height: 1.35;
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 1px solid var(--color-node-border-external);
+  border-radius: 6px;
+  pointer-events: auto;
+}
+
+/* A hovered or focused card (and its tip) draws above its neighbors. */
+.react-flow__node-course:hover,
+.react-flow__node-course:focus-within {
+  z-index: 1000 !important;
 }
 
 /* "1 of 2" pills where dashed option lines meet */
@@ -743,7 +1044,7 @@ main,
 }
 
 .focus-with-panel .detail-panel {
-  height: max(420px, calc(100vh - 260px));
+  height: max(420px, calc(100vh - 380px));
 }
 
 /* The top bar wraps below this width; its one-row alignment offsets would only add gaps. */
@@ -849,12 +1150,19 @@ main,
     border-color: Highlight;
   }
 
-  .course-node--selected .course-node__tag,
-  .course-node--selected .course-node__extra {
+  .course-node--selected .course-node__tag {
     color: HighlightText;
   }
 
-  /* Tags and pills lose their fill; an outline keeps their shape. */
+  /* Tags and pills lose their fill; an outline keeps their shape (outlines
+     take no space, so two rows of tags still fit on a card). */
+  .course-node__chip,
+  .course-node__badge {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+    border: 0;
+  }
+
   .course-node__tag,
   .legend__pill,
   .legend__grade,

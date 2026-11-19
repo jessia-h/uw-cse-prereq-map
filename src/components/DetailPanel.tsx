@@ -18,7 +18,9 @@ import {
   reqItems,
   type AnyCourse,
 } from '../lib/describe.ts'
+import type { Degree } from '../data/programs.ts'
 import { prereqGraph } from './flow.ts'
+import { InYourDegree } from './InYourDegree.tsx'
 
 const byId = new Map<string, AnyCourse>([...shownData.courses, ...shownData.external].map((c) => [c.id, c]))
 
@@ -42,8 +44,9 @@ export function DetailPanel(props: {
   onClose: () => void
   onSelect: (id: string) => void
   headingRef: RefObject<HTMLHeadingElement | null>
+  degree: Degree | null
 }) {
-  const { course, onClose, onSelect, headingRef } = props
+  const { course, onClose, onSelect, headingRef, degree } = props
   const external = isExternal(course)
   const unlocks = [...(prereqGraph.unlocks.get(course.id) ?? [])].sort((a, b) => a.id.localeCompare(b.id))
 
@@ -109,6 +112,8 @@ export function DetailPanel(props: {
           </details>
         </>
       )}
+
+      <InYourDegree courseId={course.id} degree={degree} />
 
       <h3>Unlocks</h3>
       {unlocks.length === 0 ? (

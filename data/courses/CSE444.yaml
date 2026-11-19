@@ -1,0 +1,19 @@
+id: CSE 444
+title: Database Systems Internals
+credits: "4"
+prereq:
+  all:
+    - course: CSE 332
+    - any:
+        - course: CSE 344
+        - course: CSE 414
+prereqText: "Prerequisite: CSE 332; and either CSE 344 or CSE 414."
+audience: unknown
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

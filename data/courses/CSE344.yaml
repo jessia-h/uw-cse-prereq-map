@@ -1,0 +1,15 @@
+id: CSE 344
+title: Introduction to Data Management
+credits: "4"
+prereq:
+  course: CSE 311
+prereqText: "Prerequisite: CSE 311."
+audience: majors
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

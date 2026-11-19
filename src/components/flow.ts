@@ -4,12 +4,29 @@
 
 import { MarkerType, type Edge, type Node } from '@xyflow/react'
 import { shownData } from '../data/courses.ts'
-import { courseLabel, coreqText, externalTag, isExternal, levelTag, RETIRED_PREREQ_NOTE } from '../lib/describe.ts'
+import type { Degree } from '../data/programs.ts'
+import { courseDescription, courseName, externalTag, isExternal, levelTag, RETIRED_PREREQ_NOTE } from '../lib/describe.ts'
 import type { EdgeKind, FocusGraph } from '../lib/focusGraph.ts'
 import { minGradeLabel, nodeSize, type Layout } from '../lib/layout.ts'
 import { buildGraph } from '../lib/prereq.ts'
 import { colors } from '../theme.ts'
+import { cardLens, PATH_NOTE, roleName, roleSentence, SOME_HIDDEN, visibility, type Filters, type Visibility } from './lens.ts'
 import type { Look } from './nodes.tsx'
+
+/**
+ * Scrolling over the map scrolls the page (it may be embedded in a long
+ * WordPress page), so the wheel never zooms on its own. Zoom with the +/−
+ * buttons, a touch pinch (React Flow), or Ctrl/Cmd + scroll and trackpad
+ * pinches (ScrollHint handles those, and shows a hint on a plain scroll).
+ * Dragging still pans.
+ */
+export const SCROLL_ZOOM = {
+  zoomOnScroll: false,
+  panOnScroll: false,
+  preventScrolling: false,
+  zoomOnPinch: true,
+  zoomActivationKeyCode: null,
+}
 
 /** Prerequisite links between the courses the interface shows (no retired courses). */
 export const prereqGraph = buildGraph(shownData)
@@ -37,11 +54,28 @@ export interface FlowOptions {
   hideRecommended?: boolean
   /** Recommendation ids to show even when the rest are hidden (the intro sequence). */
   alwaysShow?: Set<string>
+  /** The degree lens; null or absent = "All". */
+  degree?: Degree | null
+  /** Filters (whole map only); absent = show everything. */
+  filters?: Filters | null
+  /** Simplify intro-course lines (whole map only). */
+  simplify?: boolean
 }
 
-export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { nodes: Node[]; edges: Edge[] } {
+export function toFlow(
+  model: FocusGraph,
+  layout: Layout,
+  opts: FlowOptions,
+): { nodes: Node[]; edges: Edge[]; visible: Visibility } {
   const look = (id: string): Look => (opts.quiet ? 'quiet' : opts.highlight && !opts.highlight.has(id) ? 'faded' : 'path')
   const hide = (id: string) => !!opts.hideRecommended && !opts.alwaysShow?.has(id)
+  const degree = opts.degree ?? null
+  const visible = visibility(model, {
+    filters: opts.filters ?? null,
+    simplify: !!opts.simplify,
+    degree,
+    highlight: opts.highlight ?? null,
+  })
 
   const nodes: Node[] = model.nodes.map((n) => {
     const base = {
@@ -52,10 +86,26 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
     if (n.kind === 'course') {
       const course = n.course
       const external = isExternal(course)
+      const lens = cardLens(n.id, degree)
+      const onPathOnly = visible.pathException.has(n.id)
+      const someHidden = visible.someHidden.has(n.id)
+      // Short tags on the card; the full text is in the accessible name and panel.
+      const chips = [
+        visible.needsTag.get(n.id),
+        !external && course.coreq ? 'Co-requisite' : undefined,
+        RETIRED_PREREQ_NOTE[n.id] ? 'See details' : undefined,
+        someHidden ? SOME_HIDDEN : undefined,
+        onPathOnly ? PATH_NOTE : undefined,
+      ].filter((c): c is string => !!c)
+      const extra = [
+        roleSentence(n.id, degree),
+        someHidden ? `${SOME_HIDDEN}.` : null,
+        onPathOnly ? `${PATH_NOTE}.` : null,
+      ].filter((t): t is string => !!t)
       return {
         ...base,
         // In the focus view, courses there only because of a recommendation.
-        hidden: n.role === 'recommended' && hide(n.id),
+        hidden: (n.role === 'recommended' && hide(n.id)) || visible.hidden.has(n.id),
         type: 'course',
         data: {
           courseId: n.id,
@@ -65,17 +115,18 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
           external,
           nonCse: external && externalTag(course) === 'Non-CSE',
           tag: external ? externalTag(course) : levelTag(course),
-          extra: external
-            ? undefined
-            : course.coreq
-              ? coreqText(course.coreq)
-              : RETIRED_PREREQ_NOTE[n.id]?.card,
-          label: courseLabel(course, prereqGraph.unlocks.get(n.id)?.length ?? 0),
+          role: lens.role ? { tier: lens.role.tier, badge: lens.role.badge } : null,
+          programs: lens.programs,
+          chips,
+          onPathOnly,
+          // Short name (plus the role when a degree is picked); details in the description.
+          label: [courseName(course), roleName(n.id, degree)].filter(Boolean).join(', '),
+          description: courseDescription(course, prereqGraph.unlocks.get(n.id)?.length ?? 0, extra),
           onSelect: opts.onSelect,
         },
       }
     }
-    const hidden = n.recommended && hide(n.id)
+    const hidden = (n.recommended && hide(n.id)) || visible.hidden.has(n.id)
     if (n.kind === 'junction') {
       return { ...base, hidden, type: 'junction', data: { label: n.label, recommended: n.recommended, look: look(n.id) } }
     }
@@ -93,7 +144,7 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
       source: e.source,
       target: e.target,
       type: 'routed',
-      hidden: e.kind === 'recommended' && hide(e.id),
+      hidden: (e.kind === 'recommended' && hide(e.id)) || visible.hiddenEdges.has(e.id),
       // Lines on the path draw on top of the others.
       zIndex: edgeLook === 'path' ? 1 : 0,
       data: {
@@ -117,7 +168,7 @@ export function toFlow(model: FocusGraph, layout: Layout, opts: FlowOptions): { 
       },
     }
   })
-  return { nodes, edges }
+  return { nodes, edges, visible }
 }
 
 /** Center point of a node, for centering the view on it. */

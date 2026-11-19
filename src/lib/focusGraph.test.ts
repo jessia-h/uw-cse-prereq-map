@@ -5,8 +5,11 @@ import {
   answerSentence,
   catalogUrl,
   coreqText,
-  courseLabel,
+  courseDescription,
+  courseName,
   describeReq,
+  externalLabel,
+  externalTag,
   formatDate,
   keepCourseIdsTogether,
   levelTag,
@@ -14,7 +17,7 @@ import {
   RETIRED_PREREQ_NOTE,
 } from './describe.ts'
 import { buildFocusGraph, buildFullGraph, introLinkIds, type FocusGraph } from './focusGraph.ts'
-import { LABEL_SIZE, layoutFocusGraph, nodeSize } from './layout.ts'
+import { LABEL_SIZE, layoutFocusGraph, levelOf, nodeSize } from './layout.ts'
 import { buildGraph } from './prereq.ts'
 import { searchCourses } from './search.ts'
 
@@ -67,7 +70,7 @@ describe('buildFocusGraph', () => {
 
   it('CSE 311: direct descendants only, with the focus course drawn as one option where it is one', () => {
     const g = focus('CSE 311')
-    expect(courseIds(g, 'descendant')).toEqual(['CSE 312', 'CSE 332', 'CSE 369'])
+    expect(courseIds(g, 'descendant')).toEqual(['CSE 312', 'CSE 332', 'CSE 344', 'CSE 369'])
     expect(edge(g, 'CSE 311', 'CSE 312')).toBe('required')
 
     const g123 = focus('CSE 123')
@@ -78,10 +81,13 @@ describe('buildFocusGraph', () => {
     expect(courseIds(g123)).not.toContain('CSE 143')
   })
 
-  it('CSE 414: three options → "1 of 3", including external CSE 163', () => {
+  it('CSE 414: three options → "1 of 3", including CSE 163', () => {
     const g = focus('CSE 414')
-    expect(junctions(g).map((j) => j.kind === 'junction' && j.label)).toEqual(['1 of 3'])
-    expect(edge(g, 'CSE 163', junctions(g)[0].id)).toBe('one-of')
+    const into414 = g.nodes.find((n) => n.id === 'CSE 414/prereq')!
+    expect(into414).toMatchObject({ kind: 'junction', label: '1 of 3' })
+    expect(edge(g, 'CSE 163', into414.id)).toBe('one-of')
+    // CSE 163 is an ancestor with its own group; retired CSE 142 isn't counted.
+    expect(g.nodes.find((n) => n.id === 'CSE 163/prereq')).toMatchObject({ kind: 'junction', label: '1 of 4' })
   })
 
   it('CSE 461: retired alternatives are not drawn; 332 and 333 are solid required lines', () => {
@@ -109,7 +115,7 @@ describe('buildFocusGraph', () => {
 
   it('recommended OR with an other leaf (CSE 122)', () => {
     const g = focus('CSE 122', true)
-    const j = junctions(g)[0]
+    const j = junctions(g).find((n) => n.id === 'CSE 122/recommended')!
     expect(j).toMatchObject({ label: '1 of 2', recommended: true })
     expect(g.nodes.find((n) => n.kind === 'other')).toMatchObject({ text: 'Guided Self-Placement' })
     expect(g.edges.filter((e) => e.target === j.id).every((e) => e.kind === 'recommended')).toBe(true)
@@ -138,7 +144,7 @@ describe('buildFullGraph', () => {
 
   it('has every course and outside course', () => {
     expect(courseIds(full)).toEqual(all.map((c) => c.id).sort())
-    expect(courseIds(full)).toHaveLength(32) // 35 in the data, minus 3 retired
+    expect(courseIds(full)).toHaveLength(46) // 36 courses + 13 stubs in the data, minus 3 retired stubs
   })
 
   it('every focus graph is a subset of the full map, so highlighting matches the Focus view', () => {
@@ -192,9 +198,10 @@ describe('minimum grades on edges', () => {
 })
 
 describe('layoutFocusGraph', () => {
-  it('CSE 197 gets a taller box for its "Take with" line', () => {
-    const node = buildFullGraph(courseData).nodes.find((n) => n.id === 'CSE 197')!
-    expect(nodeSize(node).height).toBeGreaterThan(64)
+  it('every course card is the same size; CSE 197\'s "Take with" line is in its description instead', () => {
+    const sizes = new Set(buildFullGraph(courseData).nodes.filter((n) => n.kind === 'course').map((n) => JSON.stringify(nodeSize(n))))
+    expect([...sizes]).toEqual([JSON.stringify({ width: 200, height: 96 })])
+    expect(courseDescription(course('CSE 197'), 0)).toContain('Take with one of CSE 121, CSE 122, CSE 123.')
   })
 
   it('ancestors left of the focus course, descendants right (CSE 311)', async () => {
@@ -218,51 +225,58 @@ describe('layoutFocusGraph', () => {
 })
 
 describe('describe', () => {
-  it('accessible name for CSE 451', () => {
-    expect(courseLabel(course('CSE 451'), 0)).toBe(
-      'CSE 451, Introduction to Operating Systems. Requires CSE 332, CSE 333, and CSE 351.',
-    )
+  // A card's accessible name is short; everything else is its description (aria-describedby).
+  it('names are short: number and title only', () => {
+    expect(courseName(course('CSE 451'))).toBe('CSE 451, Introduction to Operating Systems')
+    expect(courseName(course('MATH 126'))).toBe('MATH 126')
+    for (const c of all) expect(courseName(c), c.id).not.toMatch(/Requires|Unlocks|minimum grade/)
+  })
+
+  it('description for CSE 451', () => {
+    expect(courseDescription(course('CSE 451'), 0)).toBe('Requires CSE 332, CSE 333, and CSE 351.')
   })
 
   it('nested ORs read with commas', () => {
-    expect(courseLabel(course('CSE 469'), 0)).toBe(
-      'CSE 469, Computer Architecture I. Requires one of E E 271 or CSE 369, and one of CSE 123 or CSE 143.',
+    expect(courseDescription(course('CSE 469'), 0)).toBe(
+      'Requires one of E E 271 or CSE 369, and one of CSE 123 or CSE 143.',
     )
   })
 
   it('minimum grades inline, unlock count', () => {
-    expect(courseLabel(course('CSE 311'), 3)).toBe(
-      'CSE 311, Foundations of Computing I. Requires one of CSE 123 (minimum grade 2.0) or CSE 143 (minimum grade 2.0), ' +
+    expect(courseDescription(course('CSE 311'), 3)).toBe(
+      'Requires one of CSE 123 (minimum grade 2.0) or CSE 143 (minimum grade 2.0), ' +
         'and one of MATH 126 (minimum grade 2.0) or MATH 135 (minimum grade 2.0). Unlocks 3 courses.',
     )
   })
 
   it('courses outside the prototype: non-CSE, and CSE not yet encoded', () => {
-    expect(courseLabel(course('MATH 126'), 1)).toBe('MATH 126. Non-CSE course. Unlocks 1 course.')
-    expect(courseLabel(course('CSE 163'), 1)).toBe('CSE 163. Not in prototype yet. Unlocks 1 course.')
+    expect(courseDescription(course('MATH 126'), 1)).toBe('Non-CSE course. Unlocks 1 course.')
+    // No CSE stub is left in the real data (CSE 163 is now encoded), so this uses a made-up one.
+    const stub = { id: 'CSE 999', status: 'active', url: 'https://www.washington.edu/students/crscat/cse.html' } as const
+    expect(courseDescription(stub, 1)).toBe('Not in prototype yet. Unlocks 1 course.')
+    expect(externalLabel(stub)).toBe('Not in prototype yet')
+    expect(externalTag(stub)).toBe('Not in prototype yet')
   })
 
-  it('minimum grades are in the accessible names (CSE 331, CSE 414)', () => {
-    expect(courseLabel(course('CSE 331'), 0)).toBe(
-      'CSE 331, Software Design and Implementation. Requires one of CSE 123 (minimum grade 2.0) or CSE 143 (minimum grade 2.0).',
+  it('minimum grades are in the descriptions (CSE 331, CSE 414)', () => {
+    expect(courseDescription(course('CSE 331'), 0)).toBe(
+      'Requires one of CSE 123 (minimum grade 2.0) or CSE 143 (minimum grade 2.0).',
     )
-    expect(courseLabel(course('CSE 414'), 0)).toBe(
-      'CSE 414, Introduction to Database Systems. Requires one of CSE 123 (minimum grade 2.5), CSE 143 (minimum grade 2.5), or CSE 163 (minimum grade 2.5).',
+    expect(courseDescription(course('CSE 414'), 0)).toBe(
+      'Requires one of CSE 123 (minimum grade 2.5), CSE 143 (minimum grade 2.5), or CSE 163 (minimum grade 2.5).',
     )
   })
 
-  it('co-requisite text and accessible name (CSE 197)', () => {
+  it('co-requisite text and description (CSE 197)', () => {
     const c197 = courseData.courses.find((c) => c.id === 'CSE 197')!
     expect(coreqText(c197.coreq!)).toBe('Take with one of CSE 121, CSE 122, CSE 123')
-    expect(courseLabel(c197, 0)).toBe(
-      'CSE 197, Problem Solving for Computer Science and Engineering. No prerequisites. Take with one of CSE 121, CSE 122, CSE 123.',
-    )
+    expect(courseDescription(c197, 0)).toBe('No prerequisites. Take with one of CSE 121, CSE 122, CSE 123.')
   })
 
   it('concurrent-ok and other leaves', () => {
     const rec447 = courseData.courses.find((c) => c.id === 'CSE 447')!.recommended!
     expect(describeReq(rec447)).toBe('MATH 208 and CSE 446 (before or at the same time)')
-    expect(courseLabel(course('CSE 121'), 0)).toBe('CSE 121, Introduction to Computer Programming I. No prerequisites.')
+    expect(courseDescription(course('CSE 121'), 0)).toBe('No prerequisites.')
   })
 })
 
@@ -286,7 +300,7 @@ describe('searchCourses', () => {
 
   it('matches title words', () => {
     expect(ids('operating')).toEqual(['CSE 451'])
-    expect(ids('Programming')).toEqual(['CSE 121', 'CSE 122', 'CSE 123', 'CSE 143', 'CSE 333'])
+    expect(ids('Programming')).toEqual(['CSE 121', 'CSE 122', 'CSE 123', 'CSE 143', 'CSE 154', 'CSE 160', 'CSE 163', 'CSE 333'])
   })
 
   it('number prefix matches courses from every department', () => {
@@ -342,8 +356,8 @@ describe('minimum-grade labels stay readable', () => {
   type Box = { id: string; x: number; y: number; w: number; h: number }
   const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
 
-  async function problems(g: FocusGraph) {
-    const layout = await layoutFocusGraph(g)
+  async function problems(g: FocusGraph, options = {}) {
+    const layout = await layoutFocusGraph(g, options)
     const labels: Box[] = [...layout.labels].map(([id, c]) => ({
       id,
       x: c.x - LABEL_SIZE.width / 2,
@@ -362,6 +376,10 @@ describe('minimum-grade labels stay readable', () => {
 
   it('no overlaps on the full map', async () => {
     expect(await problems(buildFullGraph(courseData))).toEqual([])
+  })
+
+  it('no overlaps on the full map with level bands (what the map draws)', async () => {
+    expect(await problems(buildFullGraph(courseData), { levelBands: true })).toEqual([])
   })
 
   it('no overlaps in any focus view', async () => {
@@ -386,7 +404,7 @@ describe('retired courses are hidden from the interface', () => {
 
   it('accessible names and panel sentences never name one', () => {
     for (const c of all) {
-      for (const text of [courseLabel(c, 0), 'prereq' in c ? answerSentence(c) : '']) {
+      for (const text of [courseName(c), courseDescription(c, 0), 'prereq' in c ? answerSentence(c) : '']) {
         for (const id of retired) expect(text, c.id).not.toContain(id)
       }
     }
@@ -404,9 +422,7 @@ describe('retired courses are hidden from the interface', () => {
       .map((c) => c.id)
     expect(emptied).toEqual(['CSE 143'])
     for (const id of emptied) expect(RETIRED_PREREQ_NOTE[id], id).toBeDefined()
-    expect(courseLabel(course('CSE 143'), 0)).toBe(
-      'CSE 143, Computer Programming II. For students who already completed an earlier intro course.',
-    )
+    expect(courseDescription(course('CSE 143'), 0)).toBe('For students who already completed an earlier intro course.')
   })
 })
 
@@ -434,6 +450,19 @@ describe('panel answer sentence', () => {
     )
   })
 
+  it('batch 1: retired CSE 142 is left out of CSE 154 and CSE 163', () => {
+    expect(answer('CSE 154')).toBe(
+      'To take CSE 154, you need one of CSE 122, CSE 123, CSE 143, CSE 160, or CSE 163, each with a minimum grade of 2.0.',
+    )
+    expect(answer('CSE 163')).toBe('To take CSE 163, you need one of CSE 122, CSE 123, CSE 143, or CSE 160.')
+  })
+
+  it('batch 1: "CSE 331; CSE 332" and "CSE 332 and CSE 351" are both AND; CSE 160 has none', () => {
+    expect(answer('CSE 403')).toBe('To take CSE 403, you need CSE 331 and CSE 332.')
+    expect(answer('CSE 401')).toBe('To take CSE 401, you need CSE 332 and CSE 351.')
+    expect(answer('CSE 160')).toBe('CSE 160 has no prerequisites listed in the catalog.')
+  })
+
   it('course numbers stay together when the sentence wraps', () => {
     expect(keepCourseIdsTogether('one of E E 271 or CSE 369')).toBe('one of E\u00a0E\u00a0271 or CSE\u00a0369')
   })
@@ -441,5 +470,26 @@ describe('panel answer sentence', () => {
   it('level tags', () => {
     expect(levelTag(course('CSE 197'))).toBe('100-level')
     expect(levelTag(course('CSE 311'))).toBe('300-level')
+  })
+})
+
+describe('level bands', () => {
+  it('each level gets its own columns on the full map, including courses with no lines (CSE 480, SOC 225)', async () => {
+    const g = buildFullGraph(courseData)
+    const { positions } = await layoutFocusGraph(g, { levelBands: true })
+    const spans = new Map<number, [number, number]>()
+    for (const n of g.nodes) {
+      const { x } = positions.get(n.id)!
+      const [lo, hi] = spans.get(levelOf(n.id)) ?? [Infinity, -Infinity]
+      spans.set(levelOf(n.id), [Math.min(lo, x), Math.max(hi, x + nodeSize(n).width)])
+    }
+    const ordered = [...spans].sort(([a], [b]) => a - b)
+    expect(ordered.map(([level]) => level)).toEqual([1, 2, 3, 4])
+    for (let i = 1; i < ordered.length; i++) expect(ordered[i][1][0], `level ${ordered[i][0]}`).toBeGreaterThan(ordered[i - 1][1][1])
+  })
+
+  it('no prerequisite line goes from a higher level to a lower one', () => {
+    const g = buildFullGraph(courseData)
+    for (const e of g.edges) expect(levelOf(e.source), e.id).toBeLessThanOrEqual(levelOf(e.target))
   })
 })

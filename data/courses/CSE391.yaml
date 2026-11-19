@@ -1,0 +1,19 @@
+id: CSE 391
+title: System and Software Tools
+credits: "1"
+prereq:
+  any:
+    - course: CSE 122
+    - course: CSE 123
+    - course: CSE 143
+prereqText: "Prerequisite: either CSE 122, CSE 123, or CSE 143."
+audience: majors
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog
+notes: "Credit/no-credit only."

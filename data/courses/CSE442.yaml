@@ -1,0 +1,15 @@
+id: CSE 442
+title: Data Visualization
+credits: "4"
+prereq:
+  course: CSE 332
+prereqText: "Prerequisite: CSE 332."
+audience: majors
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

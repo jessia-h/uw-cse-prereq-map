@@ -44,7 +44,7 @@ This is the runbook a Peer Adviser follows to keep the map correct. You do not n
 
 No local setup is needed for small edits: you can edit YAML in the GitHub web editor. For larger changes, run the project locally (see the README).
 
-1. **Find the file.** Each course is `data/courses/CSE451.yaml`. Non-CSE courses, retired courses, and CSE courses not yet added to the map (such as CSE 163) are stubs in `data/external.yaml`.
+1. **Find the file.** Each course is `data/courses/CSE451.yaml`. Non-CSE courses, retired courses, and CSE courses not yet added to the map are stubs in `data/external.yaml`.
 2. **Copy the official wording first.** Paste the catalog sentence exactly, character for character, into `prereqText`.
 3. **Update the logic** in `prereq` to match that wording. Copy the closest existing course as a pattern:
    - AND: `CSE451.yaml`
@@ -82,6 +82,21 @@ No local setup is needed for small edits: you can edit YAML in the GitHub web ed
 2. Fill every required field; `npm run data` lists anything missing.
 3. Any course it references must exist in `data/courses/` or `data/external.yaml`.
 4. Set `audience` to `unknown` unless the Non-Major Options page or an adviser confirms it.
+
+### Updating degree programs and course lists
+
+The degree lens ("Show my degree") reads two kinds of files. Like course files, they hold only what an official source says.
+
+- **`data/programs/cs.yaml`, `ds.yaml`, `ce.yaml`:** one file per degree, from the UW General Catalog program page. Each has `groups`:
+  - `role: required` (must take; a choice like "CSE 123 or CSE 143" is written `any: [CSE 123, CSE 143]`), `role: choose` (counts toward a specific group, such as CE's "1 of 4 required"), or `role: elective` (Core or Elective).
+  - `badge` is the text on the card. A group lists its `courses` directly or points at a `list` from `lists.yaml`; `exclude` removes courses that don't count there (CSE 331 isn't Core for CS).
+  - Rules the map doesn't check (credit totals, "at least four 400-level") go in `note`, shown in the panel.
+  - `ds.yaml` has `extends: cs`: it gets every CS group first, then its own.
+  - When a course is in two groups of the same strength, the card shows the first one in the file.
+- **`data/lists.yaml`:** the CSE Core, CE Systems Electives and CSE Electives lists (Allen School Course Lists page), lists that aren't available yet (`status: pending`, kept empty), and per-course `exceptions` from the Non-Major Options page (CSE 373, 374, 414). Courses a list names that disagree with the catalog go in that list's `conflicts`.
+- **The CSE Electives list is a rule:** any Core course, any graded 400-level CSE course whose audience is not `nonmajor`, and CSE 480. When you add a 400-level course, add it to `electives` in `lists.yaml` if it qualifies; a test fails if you forget.
+- `npm run data` validates these files too. A course they name that isn't in `data/courses/` or `data/external.yaml` is a **warning** (lists name many courses the map doesn't have yet); a missing list, a duplicate, or a schema mistake is an error.
+- Interpretation questions (what a list includes, how to word a role) go in `docs/adviser-questions.md`.
 
 ### Retiring a course
 
@@ -127,7 +142,9 @@ Special topics are not in the prototype yet. When they are added, follow this pr
 
 ## 7. Annual review (each summer, before Autumn)
 
-- [ ] Compare the UW General Catalog pages for CS, CS: Data Science, and CE with the degree data, line by line, and get adviser approval for changes.
+- [ ] Compare the UW General Catalog pages for CS, CS: Data Science, and CE with `data/programs/*.yaml`, line by line, and get adviser approval for changes. Update each file's `sources` (retrieved date) and `verified`.
+- [ ] Compare the Allen School Course Lists and Non-Major Options pages with `data/lists.yaml`: Core, CE Systems Electives, Electives, exceptions. Fill in any `pending` list that has become available (Capstone, Data Science electives) and change its `status` to `current`.
+- [ ] Run `npm run data` and read the "not in the course data yet" warnings: they list courses to add in the next batches.
 - [ ] Re-verify every course: `prereqText` matches the catalog; refresh `verified.date`.
 - [ ] Re-check every open `conflicts` entry with the data reviewer.
 - [ ] Mark courses no longer in the catalog as `status: retired`.
@@ -168,6 +185,10 @@ Target: WCAG 2.1 AA. The List view must let a screen-reader user answer every qu
 - [ ] Arrow keys move between connected courses on the map; focus ring always visible.
 - [ ] Escape closes the panel and returns focus to the course.
 - [ ] "How to read this map": Escape closes only the dialog.
+- [ ] Embedded: run `npm run build`, then `python3 -m http.server 8000` from the repository root, and open `http://localhost:8000/docs/embed-test.html`. Scrolling over the map scrolls the page (and shows "Use Ctrl + scroll to zoom"); Ctrl/Cmd + scroll, a pinch, and the +/− buttons zoom; dragging pans. Tab goes from "Skip the interactive map" into the map, through it, and out to "View the course list as text"; Shift+Tab goes back.
+- [ ] A cut-off course title shows in full on hover and on keyboard focus, stays while the pointer is on it, and Escape hides it (WCAG 1.4.13).
+- [ ] "Show my degree": switching degrees changes badges only; no course moves. A Tab and arrow keys still reach every visible course.
+- [ ] Filters: hiding a level or non-CSE courses updates "Showing N of M courses"; selecting a course brings back hidden courses on its path, marked "Shown because it's on this course's path".
 
 ### Manual: VoiceOver (Safari, macOS; Cmd+F5 to toggle)
 

@@ -1,0 +1,21 @@
+id: CSE 154
+title: Web Programming
+credits: "5"
+prereq:
+  any:
+    - { course: CSE 122, minGrade: 2.0 }
+    - { course: CSE 123, minGrade: 2.0 }
+    - { course: CSE 142, minGrade: 2.0 }
+    - { course: CSE 143, minGrade: 2.0 }
+    - { course: CSE 160, minGrade: 2.0 }
+    - { course: CSE 163, minGrade: 2.0 }
+prereqText: "Prerequisite: a minimum grade of 2.0 in either CSE 122, CSE 123, CSE 142, CSE 143, CSE 160, or CSE 163."
+audience: open
+status: active
+sources:
+  - url: "https://www.washington.edu/students/crscat/cse.html"
+    retrieved: "2026-10-22"
+verified:
+  date: "2026-10-22"
+  by: peer-adviser
+  method: catalog

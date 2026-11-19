@@ -9,18 +9,25 @@ import '@xyflow/react/dist/style.css'
 import { Controls, ReactFlow } from '@xyflow/react'
 import { useEffect, useMemo, useState } from 'react'
 import { shownData } from '../data/courses.ts'
+import type { Degree } from '../data/programs.ts'
 import { buildFocusGraph, type FocusGraph } from '../lib/focusGraph.ts'
 import { layoutFocusGraph, type Layout } from '../lib/layout.ts'
-import { prereqGraph, toFlow } from './flow.ts'
+import { prereqGraph, SCROLL_ZOOM, toFlow } from './flow.ts'
 import { GraphKeyboard } from './GraphKeyboard.tsx'
 import { CourseNode, JunctionNode, OtherNode } from './nodes.tsx'
 import { RoutedEdge } from './RoutedEdge.tsx'
+import { ScrollHint } from './ScrollHint.tsx'
 
 const nodeTypes = { course: CourseNode, junction: JunctionNode, other: OtherNode }
 const edgeTypes = { routed: RoutedEdge }
 
-export function FocusView(props: { focusId: string; showRecommended: boolean; onSelect: (id: string) => void }) {
-  const { focusId, showRecommended, onSelect } = props
+export function FocusView(props: {
+  focusId: string
+  showRecommended: boolean
+  onSelect: (id: string) => void
+  degree: Degree | null
+}) {
+  const { focusId, showRecommended, onSelect, degree } = props
   const model = useMemo(() => buildFocusGraph(focusId, shownData, prereqGraph, { showRecommended: true }), [focusId])
 
   // Layout is async; drop results for a model that is no longer current.
@@ -36,9 +43,10 @@ export function FocusView(props: { focusId: string; showRecommended: boolean; on
   const flow = useMemo(
     () =>
       layout?.model === model
-        ? toFlow(model, layout.result, { onSelect, selected: focusId, hideRecommended: !showRecommended })
+        ? // Everything here is on the course's path, so filters don't apply; the degree lens does.
+          toFlow(model, layout.result, { onSelect, selected: focusId, hideRecommended: !showRecommended, degree })
         : null,
-    [layout, model, onSelect, focusId, showRecommended],
+    [layout, model, onSelect, focusId, showRecommended, degree],
   )
 
   return (
@@ -61,8 +69,10 @@ export function FocusView(props: { focusId: string; showRecommended: boolean; on
           edgesFocusable={false}
           elementsSelectable={false}
           zoomOnDoubleClick={false}
+          {...SCROLL_ZOOM}
         >
           <Controls showInteractive={false} />
+          <ScrollHint />
           {layout && <GraphKeyboard model={layout.model} layout={layout.result} />}
         </ReactFlow>
       ) : (

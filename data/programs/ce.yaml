@@ -1,0 +1,45 @@
+# Computer Engineering (B.S.). CSE requirements only; see docs/MAINTAINING.md.
+# When a course is in two groups of the same strength, the card shows the
+# first one in this file; the panel lists all of them.
+id: ce
+name: Computer Engineering
+short: CE
+sources:
+  - url: "https://www.washington.edu/students/gencat/program/S/ComputerScienceandEngineering-406.html"
+    retrieved: "2026-10-22"
+verified: { date: "2026-10-22", by: peer-adviser, method: catalog }
+groups:
+  - id: ce-required
+    role: required
+    badge: Required
+    minGrade: 2.0
+    courses:
+      - any: [CSE 123, CSE 143]
+      - CSE 311
+      - CSE 312
+      - CSE 332
+      - CSE 351
+      - CSE 369
+      - CSE 371
+      - any: [E E 215, E E 205]
+  - id: ce-one-of-four
+    role: choose
+    badge: "1 of 4 required"
+    pick: 1
+    courses: [CSE 403, CSE 474, CSE 480, CSE 484]
+  - id: ce-systems
+    role: choose
+    badge: CE systems elective
+    pick: 3
+    list: ce-systems
+  - id: ce-core
+    role: elective
+    badge: Core
+    pick: 2
+    list: core
+    exclude: [CSE 369, CSE 371] # required for CE, so they don't count as Core
+  - id: ce-capstone
+    role: choose
+    badge: Capstone
+    pick: 1
+    list: capstone

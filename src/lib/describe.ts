@@ -76,19 +76,28 @@ export const RETIRED_PREREQ_NOTE: Record<string, { card: string; advice: string 
 }
 
 /**
- * Accessible name for a course node, e.g.
- * "CSE 451, Introduction to Operating Systems. Requires CSE 332, CSE 333, and
- * CSE 351. Unlocks 2 courses."
- * Minimum grades are included ("CSE 123 (minimum grade 2.0)").
+ * A course card's accessible name: short, e.g. "CSE 451, Introduction to
+ * Operating Systems". The details are in its description (courseDescription,
+ * linked with aria-describedby), so a screen reader moving through the map
+ * hears the name first and the details after a pause.
  */
-export function courseLabel(course: AnyCourse, unlocks: number): string {
-  const parts = [course.title ? `${course.id}, ${course.title}.` : `${course.id}.`]
+export const courseName = (course: AnyCourse) => (course.title ? `${course.id}, ${course.title}` : course.id)
+
+/**
+ * A course card's description, e.g. "Requires CSE 332, CSE 333, and CSE 351.
+ * Unlocks 2 courses." Minimum grades are included ("CSE 123 (minimum grade
+ * 2.0)"). `extra` sentences (the degree role, filter notes) go before the
+ * unlock count.
+ */
+export function courseDescription(course: AnyCourse, unlocks: number, extra: string[] = []): string {
+  const parts: string[] = []
   const note = RETIRED_PREREQ_NOTE[course.id]
   if (isExternal(course)) parts.push(`${externalLabel(course)}.`)
   else if (course.prereq) parts.push(`Requires ${describeReq(course.prereq)}.`)
   else if (note) parts.push(`${note.card}.`)
   else parts.push('No prerequisites.')
   if (!isExternal(course) && course.coreq) parts.push(`${coreqText(course.coreq)}.`)
+  parts.push(...extra) // degree role, filter notes
   if (unlocks > 0) parts.push(`Unlocks ${unlocks} ${unlocks === 1 ? 'course' : 'courses'}.`)
   return parts.join(' ')
 }
