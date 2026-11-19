@@ -18,7 +18,8 @@ import { shownData } from '../data/courses.ts'
 import type { Degree } from '../data/programs.ts'
 import { useMediaQuery, WIDE } from '../hooks/useMediaQuery.ts'
 import { buildFocusGraph, buildFullGraph, INTRO_SEQUENCE, introLinkIds } from '../lib/focusGraph.ts'
-import { layoutFocusGraph, levelOf, nodeSize, type Layout } from '../lib/layout.ts'
+import { fullLayout } from '../data/layouts.ts'
+import { levelOf, nodeSize, type Layout } from '../lib/geometry.ts'
 import { CenterOn } from './CenterOn.tsx'
 import { GraphKeyboard } from './GraphKeyboard.tsx'
 import { nodeCenter, noteAbove, prereqGraph, SCROLL_ZOOM, toFlow } from './flow.ts'
@@ -38,7 +39,7 @@ const introLinks = introLinkIds(fullModel)
 const INTRO_NOTE = 'Intro sequence: choose your starting point with Guided Self-Placement'
 
 const BAND_LABEL: Record<number, string> = { 1: '100-level', 2: '200-level (non-CSE)', 3: '300-level', 4: '400-level' }
-const BAND_GAP = 44 // half the gap between columns (layout.ts)
+const BAND_GAP = 44 // half the gap between columns (lib/layout.ts)
 
 interface Band {
   level: number
@@ -106,15 +107,9 @@ export function FullMapView(props: {
   const { selectedId, showRecommended, onSelect, panel, degree, filters, simplify, onCount } = props
   const wide = useMediaQuery(WIDE)
 
-  const [layout, setLayout] = useState<Layout | null>(null)
+  // Laid out at build time (npm run data), so it's ready on first render.
+  const layout = fullLayout
   const [viewportReady, setViewportReady] = useState(false)
-  useEffect(() => {
-    let current = true
-    layoutFocusGraph(fullModel, { levelBands: true }).then((result) => current && setLayout(result))
-    return () => {
-      current = false
-    }
-  }, [])
 
   const highlight = useMemo(() => {
     if (!selectedId) return null
@@ -124,7 +119,6 @@ export function FullMapView(props: {
 
   const { levels, hideNonCse, hideUnused } = filters
   const flow = useMemo(() => {
-    if (!layout) return null
     const { nodes, edges, visible } = toFlow(fullModel, layout, {
       onSelect,
       selected: selectedId,
@@ -157,45 +151,41 @@ export function FullMapView(props: {
   }, [flow, onCount])
 
   const center = useMemo(() => {
-    const point = layout && selectedId ? nodeCenter(fullModel, layout, selectedId) : null
+    const point = selectedId ? nodeCenter(fullModel, layout, selectedId) : null
     return point && selectedId ? { id: selectedId, ...point } : null
   }, [layout, selectedId])
 
   return (
     <div className={`map-with-panel${panel ? ' map-with-panel--open' : ''}`}>
       <div className="graph-view graph-view--map">
-        {flow ? (
-          <ReactFlow
-            nodes={flow.nodes}
-            edges={flow.edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            // CenterOn does the initial framing, so a ?course= link opens centered on it.
-            onInit={() => setViewportReady(true)}
-            minZoom={0.1}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            nodesFocusable={false}
-            edgesFocusable={false}
-            elementsSelectable={false}
-            zoomOnDoubleClick={false}
-            {...SCROLL_ZOOM}
-            attributionPosition="bottom-right" // the top edge holds the level headings
-          >
-            <Controls showInteractive={false} />
-            <ScrollHint />
-            <LevelHeadings bands={flow.bands} />
-            <CenterOn
-              ready={viewportReady}
-              target={center}
-              start={INTRO_SEQUENCE}
-              panelOpen={!!panel && wide}
-            />
-            {layout && <GraphKeyboard model={fullModel} layout={layout} panelOpen={!!panel && wide} />}
-          </ReactFlow>
-        ) : (
-          <p className="graph-view__loading">Laying out…</p>
-        )}
+        <ReactFlow
+          nodes={flow.nodes}
+          edges={flow.edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          // CenterOn does the initial framing, so a ?course= link opens centered on it.
+          onInit={() => setViewportReady(true)}
+          minZoom={0.1}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          nodesFocusable={false}
+          edgesFocusable={false}
+          elementsSelectable={false}
+          zoomOnDoubleClick={false}
+          {...SCROLL_ZOOM}
+          attributionPosition="bottom-right" // the top edge holds the level headings
+        >
+          <Controls showInteractive={false} />
+          <ScrollHint />
+          <LevelHeadings bands={flow.bands} />
+          <CenterOn
+            ready={viewportReady}
+            target={center}
+            start={INTRO_SEQUENCE}
+            panelOpen={!!panel && wide}
+          />
+          <GraphKeyboard model={fullModel} layout={layout} panelOpen={!!panel && wide} />
+        </ReactFlow>
       </div>
       {panel}
     </div>

@@ -57,7 +57,7 @@ No local setup is needed for small edits: you can edit YAML in the GitHub web ed
 5. **If sources disagree,** add a line to `conflicts` naming both sources and the date.
 6. **Check it locally** (if running locally):
    ```bash
-   npm run data       # validates all YAML; errors name the file and field
+   npm run data       # validates all YAML (errors name the file and field), then lays out the map
    npm test           # all tests
    npm run typecheck
    npm run lint
@@ -67,6 +67,7 @@ No local setup is needed for small edits: you can edit YAML in the GitHub web ed
 8. **Look at it in the browser.** Run `npm run dev`, select the course, and check the map, "Just this course", and List. Does the panel's "To take … you need" sentence say the same thing as the catalog?
 9. **Get approval.** Routine catalog-text updates: another Peer Adviser may approve. Degree rules, conflicts, and special topics: the data reviewer approves.
 10. **Merge,** and add one line to `CHANGELOG.md`.
+11. **Update the WordPress page.** The copy on the WordPress page doesn't update itself. Run `npm run build:wordpress`, open `dist-wordpress/wordpress-block.html`, copy all of it, and replace the old block in the page's **Code** tab (classic editor). Don't switch to the Visual tab afterwards: it can strip the script and the empty map container. Pasting a `<script>` needs the `unfiltered_html` capability (Administrators on a single site; only Super Admins on a multisite). Without it, WordPress silently removes the script.
 
 ### Rules that keep the data trustworthy
 

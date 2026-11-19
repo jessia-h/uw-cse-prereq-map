@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WordPress test: CSE Prerequisite Map block</title>
+    <!--
+      A stand-in for a WordPress page, with the kind of theme CSS that breaks
+      embedded widgets. `npm run build:wordpress` pastes the block from
+      dist-wordpress/wordpress-block.html into the page body (at the marker in
+      .entry-content) and writes dist-wordpress/wordpress-test.html.
+
+      To use it:
+        npm run build:wordpress
+        python3 -m http.server 8000 --directory dist-wordpress
+        open http://localhost:8000/wordpress-test.html?page_id=42
+      (?page_id=42 stands for WordPress's own URL parameters; the map must keep them.)
+    -->
+    <style>
+      /* Theme styles that would wreck the map if they reached it. */
+      html {
+        font-size: 62.5%;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: content-box;
+      }
+      body {
+        margin: 0;
+        font: 1.8rem/1.9 Georgia, 'Times New Roman', serif;
+        color: #333333;
+        background: #fffdf8;
+        text-align: justify;
+      }
+      .site-header,
+      .site-footer {
+        padding: 2rem 4rem;
+        color: #ffffff;
+        background: #222222;
+      }
+      .site-header a,
+      .site-footer a {
+        color: #ffffff;
+      }
+      .entry-content {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 2rem 4rem;
+      }
+      h1 {
+        font-size: 4.8rem;
+      }
+      h2 {
+        font-size: 4rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      h3 {
+        font-size: 2.6rem;
+        font-style: italic;
+      }
+      p {
+        margin: 0 0 2.4rem;
+      }
+      a {
+        color: #c2185b;
+        text-decoration: underline wavy;
+      }
+      ul,
+      ol {
+        margin-left: 3rem;
+        list-style: square;
+      }
+      li {
+        margin-bottom: 1.2rem;
+      }
+      div {
+        line-height: 2.4;
+      }
+      button,
+      input,
+      select {
+        padding: 1.2rem 2.4rem;
+        font: inherit;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #ffffff;
+        background: #e91e63;
+        border: 0;
+        border-radius: 0;
+      }
+      input {
+        width: 100%;
+      }
+      svg {
+        max-width: 100%;
+        height: auto;
+      }
+      :focus {
+        outline: none;
+      }
+      dialog {
+        background: #000000;
+        color: #ffff00;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="#main">Skip to content</a> · Paul G. Allen School · Advising
+    </header>
+    <main id="main">
+      <article class="entry-content">
+        <h1>Course planning</h1>
+        <p>
+          This page imitates a WordPress page with a theme whose styles would break an embedded map: a 62.5% root font
+          size, uppercase pink buttons, wavy links, justified text, content-box sizing, “svg { height: auto }”, and
+          “:focus { outline: none }”. The map below should look and work exactly as it does on its own.
+        </p>
+        <p>
+          Peer Advisers hold drop-in hours during the quarter. Bring your questions about course planning,
+          registration, and how prerequisites fit together.
+        </p>
+        {{WORDPRESS_BLOCK}}
+        <h2>After the map</h2>
+        <p>
+          Most students plan one or two quarters ahead. Check when courses are offered in the UW Time Schedule; not
+          every course is offered every quarter.
+        </p>
+        <p>
+          Questions about degree requirements go to an Allen School adviser, and the MyPlan degree audit is the
+          authority on what you have completed.
+        </p>
+        <p><a href="#main" id="last-link">Back to the top</a></p>
+      </article>
+    </main>
+    <footer class="site-footer">Allen School · University of Washington</footer>
+  </body>
+</html>

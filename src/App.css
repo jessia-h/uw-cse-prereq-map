@@ -490,13 +490,13 @@ main,
   background: color-mix(in srgb, var(--color-text) 45%, transparent);
 }
 
-.help-dialog h2 {
+.help-dialog .heading-2 {
   margin: 0 0 var(--space-2);
   font-size: var(--font-lg);
   color: var(--color-uw-purple);
 }
 
-.help-dialog h3 {
+.help-dialog .heading-3 {
   margin: var(--space-4) 0 var(--space-1);
   font-size: var(--font-md);
 }
@@ -906,7 +906,7 @@ main,
   gap: var(--space-3);
 }
 
-.detail-panel h2 {
+.detail-panel .heading-2 {
   margin: 0;
   font-size: 1.5rem;
   line-height: 1.2;
@@ -930,7 +930,7 @@ main,
   border-radius: 8px;
 }
 
-.detail-panel h3 {
+.detail-panel .heading-3 {
   margin: var(--space-5) 0 var(--space-2);
   padding-top: var(--space-4);
   font-size: var(--font-xs);
@@ -1006,7 +1006,7 @@ main,
   border-radius: 8px;
 }
 
-.detail-panel .note h3 {
+.detail-panel .note .heading-3 {
   margin-top: 0;
   padding-top: 0;
   font-size: var(--font-md);
@@ -1107,12 +1107,16 @@ main,
   max-width: 70ch;
 }
 
-.list-view h2 {
+.list-view .heading-2 {
+  margin: var(--space-5) 0 var(--space-3);
+  font-size: 1.5em; /* set here, not by the tag: embedded, this is an h3 */
+  line-height: 1.25;
   color: var(--color-uw-purple);
 }
 
-.list-view h3 {
+.list-view .heading-3 {
   margin: var(--space-5) 0 var(--space-1);
+  font-size: 1.17em;
 }
 
 .list-view ul {
@@ -1135,6 +1139,162 @@ main,
 
 .list-view__all {
   columns: 2 16rem;
+}
+
+/* Embedded in a WordPress page (App embed, inside a shadow root): a white
+   card with one toolbar row, an Options dropdown, and an 800px map. */
+.embed {
+  padding: var(--space-4);
+  background: var(--color-background);
+  border: 1px solid var(--color-card-border-quiet);
+  border-radius: 12px;
+}
+
+.embed-bar {
+  position: relative;
+  margin-bottom: var(--space-3);
+}
+
+.embed-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.embed-bar .search {
+  flex: 1 1 280px;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.embed-bar .search label {
+  white-space: nowrap;
+}
+
+.embed-bar .search input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+}
+
+.embed-bar .search__icon {
+  display: none; /* the label sits beside the box, so the icon would sit on the label */
+}
+
+.embed-bar .search input,
+.embed-bar .search__results {
+  padding-left: var(--space-3);
+}
+
+.embed-bar__degree {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.embed-bar__degree select {
+  max-width: 220px; /* leave the room to the search box */
+  height: 40px;
+  padding: 0 var(--space-2);
+  font: inherit;
+  font-weight: 400;
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 1px solid var(--color-node-border-external);
+  border-radius: 8px;
+}
+
+.embed-bar__options {
+  height: 40px;
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-tag-fill);
+  border: 1px solid var(--color-card-border-quiet);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.embed-bar__options[aria-expanded='true'] {
+  color: var(--color-text-on-purple);
+  background: var(--color-uw-purple);
+}
+
+.embed-bar__note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+}
+
+/* The Options dropdown opens over the map, so nothing moves. */
+.options-panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: min(560px, 100%);
+  max-height: 70vh;
+  overflow: auto;
+  padding: var(--space-4);
+  font-size: var(--font-sm);
+  background: var(--color-background);
+  border: 1px solid var(--color-node-border-external);
+  border-radius: 10px;
+}
+
+.options-panel[hidden] {
+  display: none;
+}
+
+.options-panel__filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.options-panel fieldset {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.options-panel legend {
+  float: left;
+  margin-right: var(--space-2);
+  font-weight: 600;
+}
+
+.options-panel .legend,
+.options-panel .legend__items {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.embed .graph-view,
+.embed .focus-with-panel .detail-panel {
+  height: min(800px, calc(100vh - 40px)); /* about 800px, never taller than the window */
+}
+
+.embed .intro {
+  margin-top: var(--space-2);
+}
+
+.embed__notice {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
 }
 
 /* Windows High Contrast / forced colors: the browser swaps in system colors

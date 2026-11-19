@@ -15,7 +15,7 @@ import { degreeModel, programData, type Degree } from '../data/programs.ts'
 import { LEVELS, type Level, type MapOptions } from '../hooks/useUrlState.ts'
 import type { DegreeRole } from '../lib/degree.ts'
 import type { FocusEdge, FocusGraph } from '../lib/focusGraph.ts'
-import { levelOf } from '../lib/layout.ts'
+import { levelOf } from '../lib/geometry.ts'
 
 export const INTRO_PAIR = ['CSE 123', 'CSE 143']
 

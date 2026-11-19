@@ -4,7 +4,10 @@
   box-sizing: border-box;
 }
 
-:root {
+/* :host and .cse-map-root: the same base styles inside the shadow root of the
+   WordPress embed (src/wordpress.tsx), where :root and body don't apply. */
+:root,
+:host {
   /* Type scale: one family, four sizes */
   --font-xs: 0.75rem;
   --font-sm: 0.875rem;
@@ -12,7 +15,8 @@
   --font-lg: 1.25rem;
 }
 
-body {
+body,
+.cse-map-root {
   margin: 0;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;

@@ -9,9 +9,13 @@ import { SearchBox } from './components/SearchBox.tsx'
 import { shownData } from './data/courses.ts'
 import { useMediaQuery, WIDE } from './hooks/useMediaQuery.ts'
 import { restoreSavedOptions, toParam, useUrlState, type MapOptions, type View } from './hooks/useUrlState.ts'
+import { EmbedToolbar } from './components/EmbedToolbar.tsx'
+import { HeadingOffset } from './components/headingLevel.ts'
 import { LensBar } from './components/LensBar.tsx'
 import { filteredOut } from './components/lens.ts'
+import { ViewSwitch } from './components/ViewSwitch.tsx'
 import type { AnyCourse } from './lib/describe.ts'
+import { appRoot, eventTarget } from './lib/root.ts'
 
 const SUGGESTED = ['CSE 332', 'CSE 451', 'CSE 469']
 
@@ -42,7 +46,7 @@ function rememberBannerDismissed() {
 const lookup = (id: string) => byParam.get(toParam(id))
 
 const focusCourseNode = (id: string) =>
-  document.querySelector<HTMLElement>(`button.course-node[data-course-id="${id}"]`)?.focus({ preventScroll: true })
+  appRoot().querySelector<HTMLElement>(`button.course-node[data-course-id="${id}"]`)?.focus({ preventScroll: true })
 
 /** Example courses, as chips under the search box. */
 function Suggestions({ onSelect }: { onSelect: (id: string) => void }) {
@@ -62,33 +66,23 @@ function Suggestions({ onSelect }: { onSelect: (id: string) => void }) {
   )
 }
 
-function ViewSwitch({ view, onChange }: { view: View; onChange: (view: View) => void }) {
-  const options: { value: View; label: string }[] = [
-    { value: 'map', label: 'Whole map' },
-    { value: 'focus', label: 'Just this course' },
-    { value: 'list', label: 'List' },
-  ]
-  return (
-    <div className="view-switch" role="group" aria-label="View">
-      {options.map((o) => (
-        <button key={o.value} type="button" aria-pressed={view === o.value} onClick={() => onChange(o.value)}>
-          {o.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 // Courses the List view lists (no retired courses).
 const listedIds = [...shownData.courses, ...shownData.external].map((c) => c.id)
 
-function App() {
+/**
+ * The whole app. `embed`: the compact version for a WordPress page
+ * (src/wordpress.tsx): no title, banner, or page landmarks; one toolbar row
+ * with an Options panel; headings one level down (under the page's h2); and
+ * List view only on narrow screens.
+ */
+function App({ embed = false }: { embed?: boolean }) {
   // Before the URL is first read: saved degree and filters, if the URL has none.
   useState(restoreSavedOptions)
   const [{ course: param, view: urlView, options }, update] = useUrlState()
   const wide = useMediaQuery(WIDE)
   // No view in the URL: the whole map on wide screens, the list on narrow ones.
-  const view: View = urlView ?? (wide ? 'map' : 'list')
+  // Embedded, narrow screens get only the list.
+  const view: View = embed && !wide ? 'list' : (urlView ?? (wide ? 'map' : 'list'))
   const [showRecommended, setShowRecommended] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(() => !bannerDismissed())
   const setOptions = useCallback(
@@ -159,28 +153,131 @@ function App() {
   // search box instead); "/" jumps to search from anywhere but a text field.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const inField = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
+      // The real target: embedded, events reach the document retargeted to the shadow host.
+      const target = eventTarget(e)
+      const inField =
+        target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement
       // The help dialog and the Filters dropdown handle their own Escape; this is a backstop.
-      if (document.querySelector('dialog[open]')) return
-      if (e.key === 'Escape' && (e.target as HTMLElement).closest?.('details.filters[open]')) return
+      if (appRoot().querySelector('dialog[open]')) return
+      if (e.key === 'Escape' && (target as HTMLElement | null)?.closest?.('details.filters[open], .options-panel')) return
+      // Embedded, keys pressed elsewhere on the WordPress page aren't ours.
+      if (embed && !(target instanceof Node && appRoot().contains(target))) return
       if (e.key === 'Escape' && panelOpen && !inField) closePanel()
       if (e.key === '/' && !inField && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault()
-        document.getElementById('course-search')?.focus()
+        appRoot().getElementById('course-search')?.focus()
       }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [panelOpen, closePanel])
+  }, [panelOpen, closePanel, embed])
 
+  // The page title names the selected course (not when embedded: that's the WordPress page's title).
   useEffect(() => {
+    if (embed) return
     const base = 'UW CSE Prerequisite Map'
     document.title = focus ? `${focus.id} — ${base}` : base
-  }, [focus])
+  }, [focus, embed])
 
   const panel = panelOpen && focus && (
     <DetailPanel course={focus} onClose={closePanel} onSelect={select} headingRef={headingRef} degree={degree} />
   )
+
+  const notFound = param && !focus && (
+    <p className="notice" role="alert">
+      “{param}” isn’t in this map yet.
+    </p>
+  )
+  // Announces selection changes to screen readers.
+  const liveRegion = (
+    <p className="visually-hidden" aria-live="polite" aria-atomic="true">
+      {announcement}
+    </p>
+  )
+  const showsGraph = view === 'map' || (view === 'focus' && !!focus)
+  const recommendedToggle = (
+    <label className="map-bar__toggle">
+      <input type="checkbox" checked={showRecommended} onChange={(e) => setShowRecommended(e.target.checked)} />{' '}
+      Show recommended courses <LineSample dash="2 4" width={32} />
+    </label>
+  )
+  const filterCount = view === 'list' ? listCount : mapCount
+
+  const views = (
+    <>
+      {view === 'map' && (
+        <FullMapView
+          selectedId={focusId ?? null}
+          showRecommended={showRecommended}
+          onSelect={select}
+          panel={panel}
+          degree={degree}
+          filters={filters}
+          simplify={simplify}
+          onCount={onMapCount}
+        />
+      )}
+
+      {view === 'focus' &&
+        (focus ? (
+          <div className={panel ? 'focus-with-panel' : undefined}>
+            <FocusView focusId={focus.id} showRecommended={showRecommended} onSelect={select} degree={degree} />
+            {panel}
+          </div>
+        ) : (
+          <p className="intro">
+            {embed
+              ? 'Search for a course to see only what it requires (left) and what it leads to (right).'
+              : 'Pick a course with search or one of the examples above to see only what it requires (left) and what it leads to (right).'}{' '}
+            Select any course in the graph to focus on it.
+          </p>
+        ))}
+
+      {view === 'list' && (
+        <ListView
+          course={focus}
+          onSelect={select}
+          onShowAll={() => update({ course: null })}
+          headingRef={headingRef}
+          degree={degree}
+          filters={filters}
+        />
+      )}
+    </>
+  )
+
+  if (embed) {
+    // Inside the WordPress page's own section: no landmarks of our own, and
+    // headings one level below the page's h2.
+    return (
+      <HeadingOffset.Provider value={1}>
+        <div className="embed">
+          <EmbedToolbar
+            options={options}
+            onChange={setOptions}
+            count={filterCount}
+            onSelect={select}
+            view={wide ? view : null}
+            onView={(v) => update({ view: v })}
+            mapOptions={
+              showsGraph && (
+                <>
+                  {recommendedToggle}
+                  <Legend degree={degree} />
+                </>
+              )
+            }
+          />
+          {liveRegion}
+          {notFound}
+          {views}
+          <p className="embed__notice">
+            <strong>Prototype:</strong> {PROTOTYPE_NOTICE}
+          </p>
+        </div>
+      </HeadingOffset.Provider>
+    )
+  }
 
   return (
     <>
@@ -192,7 +289,7 @@ function App() {
           onClick={(e) => {
             e.preventDefault()
             update({ view: 'list' })
-            requestAnimationFrame(() => document.getElementById('list-heading')?.focus())
+            requestAnimationFrame(() => appRoot().getElementById('list-heading')?.focus())
           }}
         >
           Skip to course list
@@ -210,7 +307,7 @@ function App() {
                 setBannerOpen(false)
                 rememberBannerDismissed()
                 // The button is gone; continue from the title.
-                document.querySelector<HTMLElement>('.topbar h1 a')?.focus()
+                appRoot().querySelector<HTMLElement>('.topbar h1 a')?.focus()
               }}
             >
               <span aria-hidden="true">×</span>
@@ -232,71 +329,21 @@ function App() {
         </div>
       </header>
 
-      {/* Announces selection changes to screen readers. */}
-      <p className="visually-hidden" aria-live="polite" aria-atomic="true">
-        {announcement}
-      </p>
+      {liveRegion}
 
       <main>
-        {param && !focus && (
-          <p className="notice" role="alert">
-            “{param}” isn’t in this map yet.
-          </p>
-        )}
+        {notFound}
 
-        <LensBar
-          options={options}
-          onChange={setOptions}
-          filters={view !== 'focus'}
-          count={view === 'list' ? listCount : mapCount}
-        />
+        <LensBar options={options} onChange={setOptions} filters={view !== 'focus'} count={filterCount} />
 
-        {(view === 'map' || (view === 'focus' && focus)) && (
+        {showsGraph && (
           <div className="map-bar">
             <Legend degree={degree} />
-            <label className="map-bar__toggle">
-              <input type="checkbox" checked={showRecommended} onChange={(e) => setShowRecommended(e.target.checked)} />{' '}
-              Show recommended courses <LineSample dash="2 4" width={32} />
-            </label>
+            {recommendedToggle}
           </div>
         )}
 
-        {view === 'map' && (
-          <FullMapView
-            selectedId={focusId ?? null}
-            showRecommended={showRecommended}
-            onSelect={select}
-            panel={panel}
-            degree={degree}
-            filters={filters}
-            simplify={simplify}
-            onCount={onMapCount}
-          />
-        )}
-
-        {view === 'focus' &&
-          (focus ? (
-            <div className={panel ? 'focus-with-panel' : undefined}>
-              <FocusView focusId={focus.id} showRecommended={showRecommended} onSelect={select} degree={degree} />
-              {panel}
-            </div>
-          ) : (
-            <p className="intro">
-              Pick a course with search or one of the examples above to see only what it requires (left) and what it
-              leads to (right). Select any course in the graph to focus on it.
-            </p>
-          ))}
-
-        {view === 'list' && (
-          <ListView
-            course={focus}
-            onSelect={select}
-            onShowAll={() => update({ course: null })}
-            headingRef={headingRef}
-            degree={degree}
-            filters={filters}
-          />
-        )}
+        {views}
       </main>
 
       <footer className="site-footer">

@@ -3,7 +3,7 @@
 // Falls back to React Flow's curve if elk gave no route.
 
 import { BaseEdge, getBezierPath, type Edge, type EdgeProps } from '@xyflow/react'
-import type { Point } from '../lib/layout.ts'
+import type { Point } from '../lib/geometry.ts'
 import { colors } from '../theme.ts'
 import type { Look } from './nodes.tsx'
 

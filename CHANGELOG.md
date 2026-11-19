@@ -4,6 +4,10 @@ One line per change, newest first. Data changes name the course and the source (
 
 ## 2026-11-19
 
+- Map layouts are computed at build time (`npm run data` → `src/generated/layouts.json`), and elkjs is no longer in the browser: app code 1.9 MB → 524 KB, WordPress block 782 KB → 215 KB. A test fails if the layouts are out of date with the course files.
+
+- WordPress version: `npm run build:wordpress` writes a single paste-in block (`dist-wordpress/wordpress-block.html`). It runs in a shadow root with a compact layout, needs no outside files, keeps the page's own URL parameters, and has a test page (`docs/wordpress-test.html`).
+
 - Deploys to GitHub Pages (https://jessia-h.github.io/uw-cse-prereq-map/) on every push to `main`: `.github/workflows/deploy.yml`.
 
 ## 2026-11-18

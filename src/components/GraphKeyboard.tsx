@@ -12,7 +12,7 @@
 import { useReactFlow, useStore } from '@xyflow/react'
 import { useEffect } from 'react'
 import type { FocusGraph } from '../lib/focusGraph.ts'
-import { nodeSize, type Layout } from '../lib/layout.ts'
+import { nodeSize, type Layout } from '../lib/geometry.ts'
 import { panelCover, prereqGraph } from './flow.ts'
 
 const MARGIN = 24

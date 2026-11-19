@@ -18,11 +18,15 @@ npm run dev     # start the site at http://localhost:5173
 npm test        # run all tests, including accessibility and color-contrast checks
 ```
 
+### On a WordPress page
+
+`npm run build:wordpress` writes `dist-wordpress/wordpress-block.html`: the whole map (code, styles and course data) as one block of HTML to paste into a page's **Code** tab in the classic editor. It needs no other files, and makes no outside requests. The map runs in a shadow root, so the theme's styles can't change it. See [MAINTAINING.md, section 4](docs/MAINTAINING.md#4-making-a-data-change) for when to re-paste it.
+
 ## How the data works
 
 - Each course is one small YAML file in [`data/courses/`](data/courses/), for example `data/courses/CSE451.yaml`. Degree requirements are in [`data/programs/`](data/programs/) (one file per degree) and the course lists they use (Core, CE Systems Electives, …) in [`data/lists.yaml`](data/lists.yaml). Courses from other departments, retired courses, and CSE courses not yet in the map are short stubs in [`data/external.yaml`](data/external.yaml).
 - The [UW Course Catalog](https://www.washington.edu/students/crscat/cse.html) is the source of truth. Every course stores the catalog's prerequisite sentence word for word, next to the structured version the map draws.
-- `npm run data` checks every file and names the file and field of any mistake. It runs automatically before `npm run dev` and `npm test`.
+- `npm run data` checks every file and names the file and field of any mistake, then lays out the map (positions and lines for the whole map and for each course) so the browser doesn't have to. It runs automatically before `npm run dev`, `npm test`, and both builds. A test fails if the layouts are out of date with the course files.
 - To change or add a course, follow [docs/MAINTAINING.md](docs/MAINTAINING.md). Routine updates need no React knowledge.
 
 ## The `docs/` folder
@@ -34,6 +38,7 @@ npm test        # run all tests, including accessibility and color-contrast chec
 | [step3-review.md](docs/step3-review.md) | The reviewed table of the first 22 courses as encoded, checked against the catalog |
 | [design-proposal.md](docs/design-proposal.md) | The approved design pass, with before and after screenshots in [`screenshots/`](docs/screenshots/) |
 | [degree-lens-proposal.md](docs/degree-lens-proposal.md) | The approved degree lens (CS, Data Science, CE roles) and decluttering, with screenshots in `screenshots/before-lens/` and `after-lens/` |
+| [wordpress-test.html](docs/wordpress-test.html) | A page styled like an unfriendly WordPress theme; `npm run build:wordpress` puts the block in it as `dist-wordpress/wordpress-test.html` |
 | [embed-test.html](docs/embed-test.html) | A long test page that embeds the built map in an iframe, the way WordPress will; instructions are at the top of the file |
 | [PHASE1_PROMPT.md](docs/PHASE1_PROMPT.md) | The original build plan for the Phase 1 prototype |
 

@@ -1,51 +1,22 @@
 // Left-to-right layout with elkjs's "layered" algorithm. Layered puts every
 // edge pointing rightward, so prerequisites land left of the courses they
-// unlock. Used by both the full map and the focus view.
+// unlock. Runs at build time (scripts/build-layouts.ts writes every layout to
+// src/generated/layouts.json) and in tests; the browser never loads elkjs.
 
-import ELK, { type ElkExtendedEdge, type ElkNode } from 'elkjs/lib/elk.bundled.js'
-import type { FocusGraph, FocusNode } from './focusGraph.ts'
+import ElkDefault, { type ELK as ElkInstance, type ElkExtendedEdge, type ElkNode } from 'elkjs/lib/elk.bundled.js'
+import type { FocusGraph } from './focusGraph.ts'
 
-export const CARD_WIDTH = 200
-export const CARD_HEIGHT = 96
+// Sizes, levels, and the Layout type live in geometry.ts, which the browser
+// imports; only this file loads elkjs (at build time and in tests).
+export * from './geometry.ts'
+import { LABEL_SIZE, levelOf, minGradeLabel, nodeSize, type Layout } from './geometry.ts'
 
-/**
- * Node box sizes in px. Components render at exactly these sizes. Every
- * course card is the same size: number and level, a one-line title, and up
- * to two lines of tags (role, "Needs CSE 123 or 143", "Co-requisite", …).
- */
-export function nodeSize(node: FocusNode): { width: number; height: number } {
-  if (node.kind === 'junction') return { width: 48, height: 20 } // the "1 of 2" pill
-  if (node.kind === 'other') return { width: CARD_WIDTH, height: 44 }
-  return { width: CARD_WIDTH, height: CARD_HEIGHT }
-}
-
-/**
- * A node's level band: 1 for 100-level, 2 for 200-level (non-CSE), and so
- * on. "1 of N" pills and "other" boxes take the level of the course they feed
- * (their id starts with it, e.g. "CSE 311/prereq.all0").
- */
-export function levelOf(nodeId: string): number {
-  const courseId = nodeId.split('/')[0]
-  return Math.floor(Number(courseId.split(' ').at(-1)) / 100)
-}
-
-/** Size of a minimum-grade tag such as "≥ 2.0". */
-export const LABEL_SIZE = { width: 40, height: 18 }
-
-export const minGradeLabel = (minGrade: number) => `≥ ${minGrade.toFixed(1)}`
-
+// elkjs is CommonJS. Node and Vite both hand over the class as the default
+// import, but with `module: nodenext` (the scripts' tsconfig, which reaches
+// this file through scripts/build-layouts.ts) TypeScript types it as the
+// module object, so the type is stated here.
+const ELK = ElkDefault as unknown as new () => ElkInstance
 const elk = new ELK()
-
-export type Point = { x: number; y: number }
-
-export interface Layout {
-  /** Top-left corner of each node. */
-  positions: Map<string, Point>
-  /** Each edge's route from elk (start, bends, end), so lines go around nodes. */
-  routes: Map<string, Point[]>
-  /** Center of each edge's minimum-grade label. elk places it mid-edge and reserves space for it, so labels never overlap (tested). */
-  labels: Map<string, Point>
-}
 
 /**
  * Lay out a graph left to right. With `levelBands`, each level gets its own

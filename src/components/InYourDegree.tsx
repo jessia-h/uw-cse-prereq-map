@@ -3,6 +3,7 @@
 
 import { DEGREES, degreeModel, programData, type Degree } from '../data/programs.ts'
 import type { ProgramGroup } from '../data/schema.ts'
+import { H } from './Heading.tsx'
 import { DEGREE_NOTE } from './lens.ts'
 
 /** Extra words about a group: its choice ("one of CSE 123 or CSE 143"), size, or courses. */
@@ -14,12 +15,13 @@ function groupDetail(group: ProgramGroup, courseId: string): string {
   return ''
 }
 
-export function InYourDegree({ courseId, degree, headingLevel = 3 }: { courseId: string; degree: Degree | null; headingLevel?: 2 | 3 }) {
+export function InYourDegree({ courseId, degree }: { courseId: string; degree: Degree | null }) {
   const order = degree ? [degree, ...DEGREES.filter((d) => d !== degree)] : DEGREES
-  const Heading = `h${headingLevel}` as const
   return (
-    <section className="in-degree" aria-labelledby={`in-degree-${headingLevel}`}>
-      <Heading id={`in-degree-${headingLevel}`}>In your degree</Heading>
+    <section className="in-degree" aria-labelledby="in-degree-heading">
+      <H level={3} id="in-degree-heading">
+        In your degree
+      </H>
       <ul>
         {order.map((d) => {
           const program = programData.programs.find((p) => p.id === d)!

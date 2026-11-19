@@ -21,6 +21,7 @@ import {
 import type { Degree } from '../data/programs.ts'
 import { prereqGraph } from './flow.ts'
 import { InYourDegree } from './InYourDegree.tsx'
+import { H } from './Heading.tsx'
 
 const byId = new Map<string, AnyCourse>([...shownData.courses, ...shownData.external].map((c) => [c.id, c]))
 
@@ -53,11 +54,11 @@ export function DetailPanel(props: {
   return (
     <section className="detail-panel" aria-labelledby="detail-heading">
       <div className="detail-panel__top">
-        <h2 id="detail-heading" ref={headingRef} tabIndex={-1}>
+        <H level={2} id="detail-heading" ref={headingRef} tabIndex={-1}>
           {course.id}
           {/* The space keeps "CSE 311 Foundations…" apart in the accessible name. */}
           {course.title && <span className="detail-panel__title"> {course.title}</span>}
-        </h2>
+        </H>
         <button type="button" className="detail-panel__close" onClick={onClose}>
           Close<span className="visually-hidden"> details for {course.id}</span>
         </button>
@@ -79,7 +80,7 @@ export function DetailPanel(props: {
 
       {!external && (
         <>
-          <h3>Prerequisites</h3>
+          <H level={3}>Prerequisites</H>
           {course.prereq ? (
             <ReqList items={reqItems(course.prereq)} lead="All of these:" />
           ) : RETIRED_PREREQ_NOTE[course.id] ? (
@@ -90,14 +91,14 @@ export function DetailPanel(props: {
 
           {course.coreq && (
             <>
-              <h3>Co-requisites</h3>
+              <H level={3}>Co-requisites</H>
               <p>{coreqText(course.coreq)}</p>
             </>
           )}
 
           {course.recommended && (
             <>
-              <h3>Recommended (not required)</h3>
+              <H level={3}>Recommended (not required)</H>
               <ReqList items={reqItems(course.recommended)} />
             </>
           )}
@@ -115,7 +116,7 @@ export function DetailPanel(props: {
 
       <InYourDegree courseId={course.id} degree={degree} />
 
-      <h3>Unlocks</h3>
+      <H level={3}>Unlocks</H>
       {unlocks.length === 0 ? (
         <p>{NO_UNLOCKS}</p>
       ) : (
@@ -132,7 +133,7 @@ export function DetailPanel(props: {
         </ul>
       )}
 
-      <h3>Source</h3>
+      <H level={3}>Source</H>
       <p>
         <a href={catalogUrl(course)} target="_blank" rel="noreferrer">
           {course.id} in the UW Course Catalog<span className="visually-hidden"> (opens in a new tab)</span>
@@ -148,7 +149,7 @@ export function DetailPanel(props: {
 
       {!external && course.conflicts && course.conflicts.length > 0 && (
         <div className="note" role="note" aria-labelledby="conflict-heading">
-          <h3 id="conflict-heading">Note: prerequisites differ</h3>
+          <H level={3} id="conflict-heading">Note: prerequisites differ</H>
           <p>The Allen School elective list shows different prerequisites; the catalog version is shown here.</p>
           <ul>
             {course.conflicts.map((c) => (

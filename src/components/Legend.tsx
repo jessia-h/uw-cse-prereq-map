@@ -4,6 +4,7 @@
 
 import { useRef } from 'react'
 import { colors } from '../theme.ts'
+import { H } from './Heading.tsx'
 
 /** A short line with an arrowhead, in the quiet (nothing selected) style. */
 export function LineSample({ dash, width = 40 }: { dash?: string; width?: number }) {
@@ -60,10 +61,10 @@ function HowToRead() {
           close()
         }}
       >
-        <h2 id="help-heading" ref={heading} tabIndex={-1}>
+        <H level={2} id="help-heading" ref={heading} tabIndex={-1}>
           How to read this map
-        </h2>
-        <h3>Lines and cards</h3>
+        </H>
+        <H level={3}>Lines and cards</H>
         <ul>
           <li>Prerequisites are on the left; the courses they lead to are on the right. Arrows point to the course that needs them.</li>
           <li>Solid line: required.</li>
@@ -79,19 +80,19 @@ function HowToRead() {
             course to see them, or turn off “Simplify intro-course lines” in Filters.
           </li>
         </ul>
-        <h3>Show my degree</h3>
+        <H level={3}>Show my degree</H>
         <p>
           Pick a degree to see each course’s role in it: a stripe on the card’s left edge and a badge saying Required,
           the group it counts toward (such as “1 of 4 required”), Core, or Elective. Courses with no stripe aren’t used
           in that degree’s CSE requirements. In “All”, small CS, DS and CE tags mark the degrees that require a course.
           Degree roles are a guide; confirm your requirements in MyPlan’s degree audit.
         </p>
-        <h3>Selecting a course</h3>
+        <H level={3}>Selecting a course</H>
         <p>
           The course turns purple, along with everything it requires and the courses it directly unlocks. Everything
           else turns grey. Its details open in a panel.
         </p>
-        <h3>Keyboard</h3>
+        <H level={3}>Keyboard</H>
         <ul>
           <li>Tab to a course. Left arrow: a prerequisite. Right arrow: a course it unlocks. Up and down arrows: nearby courses.</li>
           <li>Enter: open its details. Escape: close them.</li>
@@ -113,9 +114,9 @@ function RoleSample({ tier }: { tier?: string }) {
 export function Legend({ degree }: { degree?: string | null }) {
   return (
     <section className="legend" aria-labelledby="legend-heading">
-      <h2 id="legend-heading" className="visually-hidden">
+      <H level={2} id="legend-heading" className="visually-hidden">
         Key
-      </h2>
+      </H>
       <ul className="legend__items">
         <li>
           <LineSample /> Required

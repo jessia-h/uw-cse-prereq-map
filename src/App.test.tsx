@@ -456,7 +456,7 @@ describe('remembering choices', () => {
   it('a URL with no choices gets the saved ones; a URL with choices wins', () => {
     setWide(true)
     window.history.replaceState(null, '', '/')
-    localStorage.setItem('map-options', 'degree=ds&hide=noncse')
+    localStorage.setItem('cse-prereq-map:options', 'degree=ds&hide=noncse')
     render(<App />)
     expect(params().get('degree')).toBe('ds')
     expect(params().get('hide')).toBe('noncse')
@@ -472,7 +472,7 @@ describe('remembering choices', () => {
   it('choices are saved as they change, and storage that throws is fine', async () => {
     const user = renderAt('/')
     await user.click(screen.getByRole('button', { name: 'Computer Science' }))
-    expect(localStorage.getItem('map-options')).toBe('degree=cs')
+    expect(localStorage.getItem('cse-prereq-map:options')).toBe('degree=cs')
 
     const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked')
@@ -670,6 +670,7 @@ describe('scrolling over the map', () => {
     fireEvent.wheel(map, { deltaY: 100, ctrlKey: true })
     expect(screen.queryByText('Use Ctrl + scroll to zoom')).toBeNull()
     fireEvent.wheel(map, { deltaY: 100 })
-    expect(screen.getByText('Use Ctrl + scroll to zoom')).toBeTruthy()
+    // Set from a native wheel listener, so wait for React to render it.
+    expect(await screen.findByText('Use Ctrl + scroll to zoom')).toBeTruthy()
   })
 })

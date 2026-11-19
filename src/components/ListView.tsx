@@ -14,6 +14,7 @@ import type { Tier } from '../lib/degree.ts'
 import { prereqGraph } from './flow.ts'
 import { InYourDegree } from './InYourDegree.tsx'
 import { cardLens, filteredOut, type Filters } from './lens.ts'
+import { H } from './Heading.tsx'
 
 /** The card's badge as text after a course link: "Core", "Required: CS, DS, CE", or nothing. */
 function roleText(id: string, degree: Degree | null): string | null {
@@ -123,9 +124,9 @@ export function ListView(props: {
     )
     return (
       <section className="list-view" id="course-list" aria-labelledby="list-heading">
-        <h2 id="list-heading" ref={headingRef} tabIndex={-1}>
+        <H level={2} id="list-heading" ref={headingRef} tabIndex={-1}>
           All courses
-        </h2>
+        </H>
         <p>Select a course to see its prerequisites, co-requisites, recommendations, and what it unlocks.</p>
         {hiddenCount > 0 && (
           <p className="list-view__hidden">
@@ -138,7 +139,7 @@ export function ListView(props: {
               return (
                 group.length > 0 && (
                   <section key={tier} aria-labelledby={`list-group-${tier}`}>
-                    <h3 id={`list-group-${tier}`}>{heading}</h3>
+                    <H level={3} id={`list-group-${tier}`}>{heading}</H>
                     {items(group)}
                   </section>
                 )
@@ -154,10 +155,10 @@ export function ListView(props: {
 
   return (
     <section className="list-view" id="course-list" aria-labelledby="list-heading">
-      <h2 id="list-heading" ref={headingRef} tabIndex={-1}>
+      <H level={2} id="list-heading" ref={headingRef} tabIndex={-1}>
         {course.id}
         {course.title && `: ${course.title}`}
-      </h2>
+      </H>
       <p>
         {external
           ? `${externalLabel(course)}. This map doesn’t list its prerequisites.`
@@ -166,7 +167,7 @@ export function ListView(props: {
 
       {!external && (
         <>
-          <h3>Prerequisites</h3>
+          <H level={3}>Prerequisites</H>
           {course.prereq ? (
             <ReqTree req={course.prereq} onSelect={onSelect} />
           ) : RETIRED_PREREQ_NOTE[course.id] ? (
@@ -179,7 +180,7 @@ export function ListView(props: {
 
           {course.coreq && (
             <>
-              <h3>Co-requisites</h3>
+              <H level={3}>Co-requisites</H>
               <ReqTree
                 req={course.coreq}
                 onSelect={onSelect}
@@ -190,7 +191,7 @@ export function ListView(props: {
 
           {course.recommended && (
             <>
-              <h3>Recommended (not required)</h3>
+              <H level={3}>Recommended (not required)</H>
               <ReqTree req={course.recommended} onSelect={onSelect} />
             </>
           )}
@@ -199,7 +200,7 @@ export function ListView(props: {
 
       <InYourDegree courseId={course.id} degree={degree} />
 
-      <h3>Unlocks</h3>
+      <H level={3}>Unlocks</H>
       {unlocks.length === 0 ? (
         <p>{NO_UNLOCKS}</p>
       ) : (

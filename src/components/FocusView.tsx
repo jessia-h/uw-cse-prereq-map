@@ -7,11 +7,11 @@
 
 import '@xyflow/react/dist/style.css'
 import { Controls, ReactFlow } from '@xyflow/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { shownData } from '../data/courses.ts'
 import type { Degree } from '../data/programs.ts'
-import { buildFocusGraph, type FocusGraph } from '../lib/focusGraph.ts'
-import { layoutFocusGraph, type Layout } from '../lib/layout.ts'
+import { focusLayout } from '../data/layouts.ts'
+import { buildFocusGraph } from '../lib/focusGraph.ts'
 import { prereqGraph, SCROLL_ZOOM, toFlow } from './flow.ts'
 import { GraphKeyboard } from './GraphKeyboard.tsx'
 import { CourseNode, JunctionNode, OtherNode } from './nodes.tsx'
@@ -30,21 +30,14 @@ export function FocusView(props: {
   const { focusId, showRecommended, onSelect, degree } = props
   const model = useMemo(() => buildFocusGraph(focusId, shownData, prereqGraph, { showRecommended: true }), [focusId])
 
-  // Layout is async; drop results for a model that is no longer current.
-  const [layout, setLayout] = useState<{ model: FocusGraph; result: Layout } | null>(null)
-  useEffect(() => {
-    let current = true
-    layoutFocusGraph(model).then((result) => current && setLayout({ model, result }))
-    return () => {
-      current = false
-    }
-  }, [model])
+  // Laid out at build time (npm run data) for this same graph.
+  const layout = focusLayout(focusId)
 
   const flow = useMemo(
     () =>
-      layout?.model === model
+      layout
         ? // Everything here is on the course's path, so filters don't apply; the degree lens does.
-          toFlow(model, layout.result, { onSelect, selected: focusId, hideRecommended: !showRecommended, degree })
+          toFlow(model, layout, { onSelect, selected: focusId, hideRecommended: !showRecommended, degree })
         : null,
     [layout, model, onSelect, focusId, showRecommended, degree],
   )
@@ -73,10 +66,10 @@ export function FocusView(props: {
         >
           <Controls showInteractive={false} />
           <ScrollHint />
-          {layout && <GraphKeyboard model={layout.model} layout={layout.result} />}
+          {layout && <GraphKeyboard model={model} layout={layout} />}
         </ReactFlow>
       ) : (
-        <p className="graph-view__loading">Laying out…</p>
+        <p className="graph-view__loading">No map for this course yet.</p>
       )}
     </div>
   )

@@ -45,7 +45,7 @@ export interface UrlState {
 }
 
 const OPTION_PARAMS = ['degree', 'levels', 'hide', 'simple']
-const STORAGE_KEY = 'map-options'
+const STORAGE_KEY = 'cse-prereq-map:options' // namespaced: it shares storage with the WordPress site
 
 // pushState doesn't fire an event, so tell subscribers ourselves.
 const listeners = new Set<() => void>()

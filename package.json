@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "npm run data && vite",
     "build": "npm run data && tsc -b && vite build",
+    "build:wordpress": "npm run data && tsc -b && vite build --mode wordpress && node scripts/build-wordpress.ts",
     "lint": "oxlint",
     "preview": "vite preview",
-    "data": "node scripts/build-data.ts",
+    "data": "node scripts/build-data.ts && node scripts/build-layouts.ts",
     "test": "npm run data && vitest run",
     "test:watch": "npm run data && vitest",
     "typecheck": "npm run data && tsc -b"
